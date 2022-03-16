@@ -1,7 +1,7 @@
 #!/bin/bash
 ## -----------------
 ## Branch: noise_cleaning
-## In terminal, run bash as 'source noise_cleaning.sh'
+## In terminal, run bash as 'source train_noise_cleaning.sh'
 ## Good practise: use 'gpustat' and select an unused gpu.
 
 # conda work environment activated
@@ -20,7 +20,8 @@ conda activate gnn_py38_leon
 # target: 'truth_flag' - BinaryClassificationTask
 
 cd /groups/icecube/${USER}/graphnet/cleaning/
-python noise_cleaning.py
+#python noise_cleaning.py
+python train_model_cleaning.py
 
 conda deactivate
 #cd /groups/icecube/${USER}/graphnet_user/

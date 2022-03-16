@@ -6,14 +6,14 @@ from pytorch_lightning.loggers import WandbLogger
 import torch
 from torch.optim.adam import Adam
 
-from graphnet.components.loss_functions import  LogCoshLoss
+from graphnet.components.loss_functions import  BinaryCrossEntropyLoss
 from graphnet.data.constants import FEATURES, TRUTH
-from graphnet.data.utils import get_equal_proportion_neutrino_indices
+from graphnet.data.utils import get_equal_proportion_neutrino_indices, get_desired_event_numbers
 from graphnet.models import Model
 from graphnet.models.detector.icecube import IceCubeDeepCore
-from graphnet.models.gnn import DynEdge
+from graphnet.models.gnn import DynEdge_V3
 from graphnet.models.graph_builders import KNNGraphBuilder
-from graphnet.models.task.reconstruction import EnergyReconstruction
+from graphnet.models.task.reconstruction import BinaryClassificationTask
 from graphnet.models.training.callbacks import ProgressBar, PiecewiseLinearLR
 from graphnet.models.training.utils import get_predictions, make_train_validation_dataloader, save_results
 
@@ -22,16 +22,16 @@ torch.multiprocessing.set_sharing_strategy('file_system')
 
 # Constants
 features = FEATURES.DEEPCORE
-truth = TRUTH.DEEPCORE
+truth = TRUTH.DEEPCORE[:-1]
 
 # Initialise Weights & Biases (W&B) run
 wandb_logger = WandbLogger(
-    project="example-script",
-    entity="graphnet-team",
-    save_dir='./wandb/',
-    log_model=True,
+    project="wand-db-test",
+    entity="mortenholm",
+    save_dir='./results/wandb',
+    log_model=False,
+    offline=True,
 )
-
 # Main function definition
 def main():
 
@@ -40,14 +40,14 @@ def main():
 
     # Configuration
     config = {
-        "db": '/groups/icecube/asogaard/data/sqlite/dev_lvl7_robustness_muon_neutrino_0000/data/dev_lvl7_robustness_muon_neutrino_0000.db',
-        "pulsemap": 'SplitInIcePulse',
-        "batch_size": 512,
+        "db": '/groups/icecube/asogaard/data/sqlite/dev_step4_numu_140021_second_run/data/dev_step4_numu_140021_second_run.db',
+        "pulsemap": 'SplitInIcePulses',
+        "batch_size": 128,
         "num_workers": 10,
         "gpus": [1],
-        "target": 'track',
-        "n_epochs": 5,
-        "patience": 5,
+        "target": 'truth_flag',
+        "n_epochs": 5, #50
+        "patience": 2, #5
     }
     archive = "/groups/icecube/qgf305/graphnet_user/results/"
     run_name = "dynedge_{}_example".format(config["target"])
@@ -56,8 +56,8 @@ def main():
     wandb_logger.experiment.config.update(config)
 
     # Common variables
-    train_selection, _ = get_equal_proportion_neutrino_indices(config["db"])
-    train_selection = train_selection[0:50000]
+    train_selection = get_desired_event_numbers(config["db"], 500_000, fraction_nu_mu = 1)
+    train_selection = train_selection[0:500_000]
 
     training_dataloader, validation_dataloader = make_train_validation_dataloader(
         config["db"],
@@ -73,14 +73,13 @@ def main():
     detector = IceCubeDeepCore(
         graph_builder=KNNGraphBuilder(nb_nearest_neighbours=8),
     )
-    gnn = DynEdge(
+    gnn = DynEdge_V3(
         nb_inputs=detector.nb_outputs,
     )
-    task = EnergyReconstruction(
+    task = BinaryClassificationTask(
         hidden_size=gnn.nb_outputs,
         target_labels=config["target"],
-        loss_function=LogCoshLoss(),
-        transform_prediction_and_target=torch.log10,
+        loss_function=BinaryCrossEntropyLoss(),
     )
     model = Model(
         detector=detector,
