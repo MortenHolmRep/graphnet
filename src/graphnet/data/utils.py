@@ -10,7 +10,6 @@ import re
 from typing import List, Tuple
 import sqlite3
 
-
 def get_desired_event_numbers(db_path, desired_size, fraction_noise=0, fraction_nu_e=0, fraction_muon=0, fraction_nu_mu = 0, fraction_nu_tau=0, seed=0):
     assert fraction_nu_e + fraction_muon + fraction_nu_mu + fraction_nu_tau + fraction_noise == 1.0, 'Sum of fractions not equal to one.'
     rng = np.random.RandomState(seed=seed)

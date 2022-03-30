@@ -7,7 +7,7 @@ class FEATURES:
         'dom_z',
         'dom_time',
         'charge',
-        'rde',
+        'rde', # maybe multiply rde and pmt_area
         'pmt_area',
     ]
     DEEPCORE = ICECUBE86
@@ -19,6 +19,11 @@ class FEATURES:
         'pmt_dir_y',
         'pmt_dir_z',
         'dom_type',
+    ]
+    UPGRADE_NOISE = ICECUBE86 + [
+        'pmt_dir_x',
+        'pmt_dir_y',
+        'pmt_dir_z',
     ]
 
 class TRUTH:
@@ -37,3 +42,4 @@ class TRUTH:
     ]
     DEEPCORE = ICECUBE86
     UPGRADE = DEEPCORE
+    UPGRADE_NOISE = DEEPCORE

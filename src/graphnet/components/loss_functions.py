@@ -80,6 +80,20 @@ class BinaryCrossEntropyLoss(LossFunction):
     def _forward(self, prediction: Tensor, target: Tensor) -> Tensor:
         return torch.nn.functional.binary_cross_entropy(prediction.float(), target.float(), reduction='none')
 
+class BinaryCrossEntropyLoss_noise(LossFunction):
+    """ Computes binary cross entropy for a vector of predictions, 
+    based on the individual dom types (between 0 and 1).
+    targets should be 0 and 1 for muon and neutrino respectively
+    where prediction is prob. The PID is neutrino (12,14,16)
+    loss should be reported elementwise, so set reduction to None
+    """
+    def _forward(self, prediction: Tensor, target: Tensor) -> Tensor:
+        # TODO: pseudo setup to reflect the idea, not currently working
+        p = torch.nn.functional.binary_cross_entropy(prediction[pdom].float(), target.float(), reduction='none')
+        m = torch.nn.functional.binary_cross_entropy(prediction[mdom].float(), target.float(), reduction='none')
+        d = torch.nn.functional.binary_cross_entropy(prediction[Degg].float(), target.float(), reduction='none')
+        return p + m + d
+
 class LogCMK(torch.autograd.Function):
     """MIT License
 

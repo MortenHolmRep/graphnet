@@ -150,7 +150,6 @@ class DynEdge(GNN):
         return x
 
 
-
 class DynEdge_V2(GNN):
     def __init__(self, nb_inputs, layer_size_scale=4):
         """DynEdge model.
@@ -296,9 +295,10 @@ class DynEdge_V2(GNN):
 
         return x
 
+
 class DynEdge_V3(GNN):
     def __init__(self, nb_inputs, layer_size_scale=4):
-        """DynEdge model.
+        """Modified DynEdge model for noise cleaning
 
         Args:
             nb_inputs (int): Number of input features.

@@ -139,3 +139,6 @@ wandb/
 **.png
 **.pth
 **.ipynb
+cleaning/nohup.out
+cleaning/nohup1.out
+cleaning/noise_cleaning
