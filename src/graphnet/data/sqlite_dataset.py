@@ -63,12 +63,61 @@ class SQLiteDataset(torch.utils.data.Dataset):
     def __len__(self):
         return len(self._indices)
 
+    #def __getitem__(self, i):
+    #    """Get item from dataset and return a graph with features and truth."""
+    #    self.establish_connection(i)
+    #    features, truth = self._query_database(i)
+    #    graph = self._create_graph(features, truth)
+    #    graph = self._add_truth_flag(i, graph)
+    #    return graph
+
     def __getitem__(self, i):
+        """Get item from dataset and return a graph with features and truth 
+        where specific dom features are removed."""
         self.establish_connection(i)
         features, truth = self._query_database(i)
+        truth_flag = self._get_truth_flag(i)
+        
+        # feature, condition; if [] then no filtering happen
+        filter = ['string', 86] # strings below condition
+        #filter = ['dom_type', 120] # only doms of type 120
+        
+        features, truth_flag = self._remove_dom_features(features, truth_flag, filter)
+
         graph = self._create_graph(features, truth)
-        graph = self._add_truth_flag(i, graph)
+        graph = self._add_truth_flag(i, graph, truth_flag)
+        
         return graph
+
+    def _remove_dom_features(self, features, truth_flag, filter):
+        """Remove DOM type features from features and truth_flag."""
+        if filter == None or filter == []:
+            return features, truth_flag
+        
+        dom_feature = filter[0]
+        condition = filter[1]
+
+        # truth_flags do not have the same indicator as features; deconstructed list comprehension
+        feature = [] # features
+        truth = [] # truth_flag
+        for idx, item in enumerate(features):
+            if dom_feature == 'string':
+                if item[8] <= condition:
+                    feature.append(item)
+                    truth.append(truth_flag[idx])
+            elif dom_feature == 'dom_type':
+                if item[14] == condition:
+                    feature.append(item)
+                    truth.append(truth_flag[idx])
+        truth = torch.stack(truth) # convert list back to torch.tensor
+        
+        # OLD: goes through the list of features and includes only those with the criteria
+        #features = [feature for feature in features if feature[14] != 'dom_type'] # remove specific doms
+        #features = [feature for feature in features if feature[8] <= 86] # specific string
+        #truth = [truths for truths in truth if truths[14] != 'dom_type']
+        #truth_flag = [truth for truth in truth_flag if truth[8] <= 86] # specific string
+        
+        return feature, truth
 
     def _get_all_indices(self):
         self.establish_connection(0)
@@ -99,6 +148,7 @@ class SQLiteDataset(torch.utils.data.Dataset):
                     pulsemap,
                     self._index_column,
                     index,
+                    # AND WHERE string <= 86,
                 )
             ).fetchall()
             features.extend(features_pulsemap)
@@ -213,9 +263,14 @@ class SQLiteDataset(torch.utils.data.Dataset):
 
         return graph
 
-    def _add_truth_flag(self, i, graph):
-        graph['truth_flag'] = torch.tensor(self._query_noise_database(i)).reshape(-1)
+    def _add_truth_flag(self, i, graph, truth_flag):
+        #graph['truth_flag'] = torch.tensor(self._query_noise_database(i)).reshape(-1)
+        graph['truth_flag'] = truth_flag
         return graph
+
+    def _get_truth_flag(self, i):
+        truth_flag = torch.tensor(self._query_noise_database(i)).reshape(-1)
+        return truth_flag
 
     def establish_connection(self,i):
         """Make sure that a sqlite3 connection is open."""

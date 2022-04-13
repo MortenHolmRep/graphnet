@@ -89,6 +89,7 @@ class BinaryCrossEntropyLoss_noise(LossFunction):
     """
     def _forward(self, prediction: Tensor, target: Tensor) -> Tensor:
         # TODO: pseudo setup to reflect the idea, not currently working
+        # each specfic dom type gets its own cross entropy and they're summed together
         p = torch.nn.functional.binary_cross_entropy(prediction[pdom].float(), target.float(), reduction='none')
         m = torch.nn.functional.binary_cross_entropy(prediction[mdom].float(), target.float(), reduction='none')
         d = torch.nn.functional.binary_cross_entropy(prediction[Degg].float(), target.float(), reduction='none')

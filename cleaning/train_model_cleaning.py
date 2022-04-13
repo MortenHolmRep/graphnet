@@ -21,16 +21,16 @@ from graphnet.models.training.utils import get_predictions, make_train_validatio
 torch.multiprocessing.set_sharing_strategy('file_system')
 
 # Constants
-features = FEATURES.UPGRADE
-truth = TRUTH.UPGRADE[:-1]
+features = FEATURES.DEEPCORE
+truth = TRUTH.DEEPCORE[:-1]
 
 # Initialise Weights & Biases (W&B) run
 wandb_logger = WandbLogger(
     project="wand-db-test",
     entity="morten",
     save_dir='./results/wandb',
-    log_model=True,
-    offline=False,
+    log_model=False,
+    offline=True,
 )
 # Main function definition
 def main():
@@ -46,17 +46,17 @@ def main():
         "num_workers": 20,
         "gpus": [0],
         "target": 'truth_flag',
-        "n_epochs": 1, #50
-        "patience": 1, #5
+        "n_epochs": 50,
+        "patience": 5,
     }
     archive = "/groups/icecube/qgf305/graphnet_user/results/"
-    run_name = "dynedge_noiseClassification_Pdom_{}".format(config["target"])
+    run_name = "dynedge_noiseClassification_DEEPCORE_{}".format(config["target"])
 
     # Log configuration to W&B
     wandb_logger.experiment.config.update(config)
 
     # Common variables
-    train_selection = get_desired_event_numbers(config["db"], desired_size=1_000, fraction_nu_mu = 1)
+    train_selection = get_desired_event_numbers(config["db"], desired_size=1_000_000, fraction_nu_mu = 1)
 
     training_dataloader, validation_dataloader = make_train_validation_dataloader(
         config["db"],
@@ -69,7 +69,7 @@ def main():
     )
 
     # Building model
-    detector = IceCubeUpgrade_V3(
+    detector = IceCubeUpgrade(
         graph_builder=KNNGraphBuilder(nb_nearest_neighbours=8),
     )
     gnn = DynEdge_V3(

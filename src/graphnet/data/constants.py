@@ -20,11 +20,6 @@ class FEATURES:
         'pmt_dir_z',
         'dom_type',
     ]
-    UPGRADE_NOISE = ICECUBE86 + [
-        'pmt_dir_x',
-        'pmt_dir_y',
-        'pmt_dir_z',
-    ]
 
 class TRUTH:
     ICECUBE86 = [
@@ -42,4 +37,3 @@ class TRUTH:
     ]
     DEEPCORE = ICECUBE86
     UPGRADE = DEEPCORE
-    UPGRADE_NOISE = DEEPCORE
