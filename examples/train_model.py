@@ -27,6 +27,8 @@ from graphnet.utilities.logging import get_logger
 
 logger = get_logger()
 
+from CLI.CLI_train_model_example import *
+
 # Configurations
 torch.multiprocessing.set_sharing_strategy("file_system")
 
@@ -37,17 +39,17 @@ truth = TRUTH.DEEPCORE[:-1]
 # Main function definition
 def main():
     
-    parser = argparse.ArgumentParser(description="parameters for training example")
-    parser.add_argument("--database", help="path, name and format of database.", type=str, required=True)
-    parser.add_argument("--pulsemap", help="", type=str, required=False, default='SRTTWOfflinePulsesDC')
-    parser.add_argument("--batch", help="batch size of training", type=int, required=False, default=512)
-    parser.add_argument("--workers", help="number of workers", required=False, default=10)
-    parser.add_argument("--gpu", help="Choose gpu to use [1/2]; default is None.", type=int, required=False, default=None)
-    parser.add_argument("--target", help="reconstruction target; energy, ...", type=str, required=False, default='energy')
-    parser.add_argument("--epochs", help="number of epochs to use.", type=int, required=False, default=5)
-    parser.add_argument("--patience", help="???", type=int, required=False, default=5)
-    parser.add_argument("--output", help="output path.", type=str, required=True)
-    args = parser.parse_args()
+    #parser = argparse.ArgumentParser(description="parameters for training example")
+    #parser.add_argument("--database", help="path, name and format of database.", type=str, required=True)
+    #parser.add_argument("--pulsemap", help="", type=str, required=False, default='SRTTWOfflinePulsesDC')
+    #parser.add_argument("--batch", help="batch size of training", type=int, required=False, default=512)
+    #parser.add_argument("--workers", help="number of workers", required=False, default=10)
+    #parser.add_argument("--gpu", help="Choose gpu to use [1/2]; default is None.", type=int, required=False, default=None)
+    #parser.add_argument("--target", help="reconstruction target; energy, ...", type=str, required=False, default='energy')
+    #parser.add_argument("--epochs", help="number of epochs to use.", type=int, required=False, default=5)
+    #parser.add_argument("--patience", help="???", type=int, required=False, default=5)
+    #parser.add_argument("--output", help="output path.", type=str, required=True)
+    #args = parser.parse_args()
 
     savedir = args.output+'/wandb/'
     os.makedirs(savedir, exist_ok=True)
