@@ -62,7 +62,8 @@ def get_equal_proportion_neutrino_indices(db: str, seed: int = 42) -> Tuple[List
         tuple: Training and test indices, resp.
     """
     # Common variables
-    pids = ['12', '14', '16']
+    pids = ['12']
+    #pids = ['12', '14', '16']
     pid_indicies = {}
     indices = []
     rng = np.random.RandomState(seed=seed)

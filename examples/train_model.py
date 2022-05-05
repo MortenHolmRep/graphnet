@@ -22,14 +22,14 @@ torch.multiprocessing.set_sharing_strategy('file_system')
 
 # Constants
 features = FEATURES.DEEPCORE
-truth = TRUTH.DEEPCORE
+truth = TRUTH.DEEPCORE[:-1]
 
 # Initialise Weights & Biases (W&B) run
 wandb_logger = WandbLogger(
     project="example-script",
     entity="graphnet-team",
     save_dir='./wandb/',
-    log_model=True,
+    log_model=False,
 )
 
 # Main function definition
@@ -42,12 +42,12 @@ def main():
     config = {
         "db": '/groups/icecube/asogaard/data/sqlite/dev_lvl7_robustness_muon_neutrino_0000/data/dev_lvl7_robustness_muon_neutrino_0000.db',
         "pulsemap": 'SRTTWOfflinePulsesDC',
-        "batch_size": 512,
-        "num_workers": 10,
-        "gpus": [1],
+        "batch_size": 64,
+        "num_workers": 2,
+        "gpus": [],
         "target": 'energy',
-        "n_epochs": 5,
-        "patience": 5,
+        "n_epochs": 3,
+        "patience": 3,
     }
     archive = "/groups/icecube/asogaard/gnn/results/"
     run_name = "dynedge_{}_example".format(config["target"])

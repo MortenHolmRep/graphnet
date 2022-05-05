@@ -10,7 +10,7 @@ from graphnet.components.loss_functions import  BinaryCrossEntropyLoss
 from graphnet.data.constants import FEATURES, TRUTH
 from graphnet.data.utils import get_equal_proportion_neutrino_indices, get_desired_event_numbers
 from graphnet.models import Model
-from graphnet.models.detector.icecube import IceCubeUpgrade, IceCubeUpgrade_V3
+from graphnet.models.detector.icecube import IceCubeUpgrade, IceCube86
 from graphnet.models.gnn import DynEdge_V3
 from graphnet.models.graph_builders import KNNGraphBuilder
 from graphnet.models.task.reconstruction import BinaryClassificationTask
@@ -21,8 +21,8 @@ from graphnet.models.training.utils import get_predictions, make_train_validatio
 torch.multiprocessing.set_sharing_strategy('file_system')
 
 # Constants
-features = FEATURES.DEEPCORE
-truth = TRUTH.DEEPCORE[:-1]
+features = FEATURES.ICECUBE86
+truth = TRUTH.ICECUBE86[:-1]
 
 # Initialise Weights & Biases (W&B) run
 wandb_logger = WandbLogger(
@@ -40,23 +40,25 @@ def main():
 
     # Configuration
     config = {
-        "db": '/groups/icecube/asogaard/data/sqlite/dev_step4_numu_140021_second_run/data/dev_step4_numu_140021_second_run.db',
-        "pulsemap": 'SplitInIcePulses',
-        "batch_size": 256,
-        "num_workers": 20,
-        "gpus": [0],
-        "target": 'truth_flag',
-        "n_epochs": 50,
+        "db": '/lustre/hpc/icecube/leonbozi/datafromrasmus/GNNReco/data/databases/dev_HE_NuE_IC86_2013_holeice_30_v4/data/dev_HE_NuE_IC86_2013_holeice_30_v4.db',
+        #"db": '/groups/icecube/asogaard/data/sqlite/dev_step4_numu_140021_second_run/data/dev_step4_numu_140021_second_run.db',
+        "pulsemap": 'SRTOfflinePulses',#'SplitInIcePulses',
+        "batch_size": 32,#256,
+        "num_workers": 1,
+        "gpus": [],
+        "target": 'truth',#'truth_flag',
+        "n_epochs": 1,
         "patience": 5,
     }
     archive = "/groups/icecube/qgf305/graphnet_user/results/"
-    run_name = "dynedge_noiseClassification_DEEPCORE_{}".format(config["target"])
+    run_name = "dynedge_noiseClassification_HE_{}".format(config["target"])
 
     # Log configuration to W&B
     wandb_logger.experiment.config.update(config)
 
     # Common variables
-    train_selection = get_desired_event_numbers(config["db"], desired_size=1_000_000, fraction_nu_mu = 1)
+    #train_selection = get_desired_event_numbers(config["db"], desired_size=1_000, fraction_nu_mu = 1)
+    train_selection = get_equal_proportion_neutrino_indices(config["db"])
 
     training_dataloader, validation_dataloader = make_train_validation_dataloader(
         config["db"],
@@ -69,7 +71,7 @@ def main():
     )
 
     # Building model
-    detector = IceCubeUpgrade(
+    detector = IceCube86(
         graph_builder=KNNGraphBuilder(nb_nearest_neighbours=8),
     )
     gnn = DynEdge_V3(

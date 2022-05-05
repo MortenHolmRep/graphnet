@@ -79,7 +79,8 @@ class SQLiteDataset(torch.utils.data.Dataset):
         truth_flag = self._get_truth_flag(i)
         
         # feature, condition; if [] then no filtering happen
-        filter = ['string', 86] # strings below condition
+        filter = []
+        #filter = ['string', 86] # strings below condition
         #filter = ['dom_type', 120] # only doms of type 120
         
         features, truth_flag = self._remove_dom_features(features, truth_flag, filter)
