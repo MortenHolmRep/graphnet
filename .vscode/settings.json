@@ -1,0 +1,6 @@
+{
+    "python.analysis.extraPaths": [
+        "./src/graphnet/utils/cluster",
+        "./src/graphnet/utils/cluster"
+    ]
+}
