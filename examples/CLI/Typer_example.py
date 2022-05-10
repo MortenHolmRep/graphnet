@@ -1,6 +1,6 @@
 import typer
 
-app = typer.Typer(help="Awesome CLI user manager.")
+app = typer.Typer(help="Commandline interface")
 
 # Positional / required arguments
     parser.add_argument(
