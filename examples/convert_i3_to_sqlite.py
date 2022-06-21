@@ -13,11 +13,12 @@ from graphnet.data.sqlite_dataconverter import SQLiteDataConverter
 def main_icecube86():
     """Main script function."""
     paths = [
-        "/groups/icecube/asogaard/data/i3/i3_to_sqlite_workshop_test/level7_v02.00"
+         "/data/user/mholm/data/I3_files/"
+        #"/data/ana/LE/oscNext/pass2/genie/level7_v03.01/140000"
     ]
     pulsemap = "SRTInIcePulses"
-    gcd_rescue = "resources/GeoCalibDetectorStatus_AVG_55697-57531_PASS2_SPE_withScaledNoise.i3.gz"
-    outdir = "/groups/icecube/asogaard/temp/sqlite_test_ic86"
+    gcd_rescue = "GeoCalibDetectorStatus_AVG_55697-57531_PASS2_SPE_withScaledNoise.i3.gz"
+    outdir = "/data/user/mholm/data/sqlite_test_ic86"
     db_name = "data_test"
     workers = 1
 
@@ -68,5 +69,5 @@ def main_icecube_upgrade():
 
 
 if __name__ == "__main__":
-    # main_icecube86()
-    main_icecube_upgrade()
+    main_icecube86()
+    #main_icecube_upgrade()

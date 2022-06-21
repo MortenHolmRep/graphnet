@@ -1,8 +1,9 @@
 #!/bin/bash
 
 # conda work environment activated
-source /groups/icecube/${USER}/.bashrc
-cd /groups/icecube/${USER}/graphnet_user/env/
+#source /groups/icecube/${USER}/.bashrc
+#source /${USER}/.bashrc
+#cd /groups/icecube/${USER}/graphnet_user/env/
 conda activate gnn_py38_leon
 
 cd /groups/icecube/${USER}/graphnet/examples/

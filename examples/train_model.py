@@ -45,7 +45,7 @@ def main():
 
     # Configuration
     config = {
-        "db": "/groups/icecube/asogaard/data/sqlite/dev_lvl7_robustness_muon_neutrino_0000/data/dev_lvl7_robustness_muon_neutrino_0000.db",
+        "db": "/data/sqlite/dev_lvl7_robustness_muon_neutrino_0000/data/dev_lvl7_robustness_muon_neutrino_0000.db",
         "pulsemap": "SRTTWOfflinePulsesDC",
         "batch_size": 512,
         "num_workers": 10,
@@ -54,7 +54,7 @@ def main():
         "n_epochs": 5,
         "patience": 5,
     }
-    archive = "/groups/icecube/qgf305/graphnet/results/"
+    archive = "/graphnet/results/"
     run_name = "dynedge_cluster_{}_example".format(config["target"])
 
     # Log configuration to W&B
