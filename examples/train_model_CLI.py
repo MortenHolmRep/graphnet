@@ -1,5 +1,6 @@
 import os.path
-import argparse
+import typer
+app = typer.Typer()
 
 from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks import EarlyStopping
@@ -59,8 +60,8 @@ def main():
         log_model=False,
     )
 
-    print(f"features: {features}")
-    print(f"truth: {truth}")
+    logger.info(f"features: {features}")
+    logger.info(f"truth: {truth}")
 
     # Configuration
     config = {
@@ -167,6 +168,21 @@ def main():
     save_results(config["db"], run_name, results, archive, model)
 
 
+
+
+
+@app.command()
+def hello(name: str):
+    print(f"Hello {name}")
+
+
+@app.command()
+def goodbye(name: str, formal: bool = False):
+    if formal:
+        print(f"Goodbye Ms. {name}. Have a good day.")
+    else:
+        print(f"Bye {name}!")
+
 # Main function call
 if __name__ == "__main__":
-    main()
+    app()
