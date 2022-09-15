@@ -1,6 +1,7 @@
 """Consistent and configurable logging across the project."""
 
 from collections import Counter
+from functools import lru_cache
 import re
 from typing import Optional
 import colorlog
@@ -53,6 +54,12 @@ def get_formatters() -> Tuple[logging.Formatter, colorlog.ColoredFormatter]:
     return basic_formatter, colored_formatter
 
 
+@lru_cache(1)
+def warn_once(logger: logging.Logger, message: str):
+    """Print `message` as warning exactly once."""
+    logger.warn(message)
+
+
 class RepeatFilter(object):
     """Filter out repeat messages."""
 
@@ -89,7 +96,7 @@ def get_logger(
     if level is None:
         level = logging.INFO
 
-    basic_formatter, colored_formatter = get_formatters()
+    _, colored_formatter = get_formatters()
 
     # Create logger
     logger = colorlog.getLogger(LOGGER_NAME)
@@ -117,13 +124,18 @@ def get_logger(
 
     file_handler = logging.FileHandler(log_path)
     stream_handler.setLevel(logging.DEBUG)
-    file_handler.setFormatter(basic_formatter)
+    file_handler.setFormatter(colored_formatter)
     logger.addHandler(file_handler)
 
     # Make className empty by default
     logger = logging.LoggerAdapter(logger, extra={"className": ""})
 
-    logger.info(f"Writing log to {log_path}")
+    logger.info(f"Writing log to \033[1m{log_path}\033[0m")
+
+    # Have pytorch lightning write to same log file
+    pl_logger = logging.getLogger("pytorch_lightning")
+    pl_file_handler = logging.FileHandler(log_path)
+    pl_logger.addHandler(pl_file_handler)
 
     # Store as global variable
     LOGGER = logger

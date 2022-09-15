@@ -1,11 +1,14 @@
 """Classes for coarsening operations (i.e., clustering, or local pooling."""
 
 from abc import ABC, abstractmethod
-
+from multiprocessing import pool
+from typing import List, Optional, Union
+from copy import deepcopy
 import torch
 from torch import LongTensor, Tensor
-from torch_geometric.data import Data
+from torch_geometric.data import Data, Batch
 
+# from torch_geometric.utils import unbatch_edge_index
 from graphnet.components.pool import (
     group_by,
     avg_pool,
@@ -18,9 +21,35 @@ from graphnet.components.pool import (
     sum_pool_x,
     std_pool_x,
 )
+from graphnet.utilities.logging import LoggerMixin
+
+# Utility method(s)
+from torch_geometric.utils import degree
+
+# NOTE: From [https://github.com/pyg-team/pytorch_geometric/pull/4903]
+# TODO: Remove once bumping to torch_geometric>=2.1.0
+#       See [https://github.com/pyg-team/pytorch_geometric/blob/master/CHANGELOG.md]
 
 
-class Coarsening(ABC):
+def unbatch_edge_index(edge_index: Tensor, batch: Tensor) -> List[Tensor]:
+    r"""Splits the :obj:`edge_index` according to a :obj:`batch` vector.
+    Args:
+        edge_index (Tensor): The edge_index tensor. Must be ordered.
+        batch (LongTensor): The batch vector
+            :math:`\mathbf{b} \in {\{ 0, \ldots, B-1\}}^N`, which assigns each
+            node to a specific example. Must be ordered.
+    :rtype: :class:`List[Tensor]`
+    """
+    deg = degree(batch, dtype=torch.int64)
+    ptr = torch.cat([deg.new_zeros(1), deg.cumsum(dim=0)[:-1]], dim=0)
+
+    edge_batch = batch[edge_index[0]]
+    edge_index = edge_index - ptr[edge_batch]
+    sizes = degree(edge_batch, dtype=torch.int64).cpu().tolist()
+    return edge_index.split(sizes, dim=1)
+
+
+class Coarsening(ABC, LoggerMixin):
     """Base class for coarsening operations."""
 
     # Class variables
@@ -45,45 +74,57 @@ class Coarsening(ABC):
         self._do_transfer_attributes = transfer_attributes
 
     @abstractmethod
-    def _perform_clustering(self, data: Data) -> LongTensor:
+    def _perform_clustering(self, data: Union[Data, Batch]) -> LongTensor:
         """Perform clustering of nodes in `data` by assigning unique cluster indices to each."""
 
-    def _additional_features(self, cluster: LongTensor, data: Data) -> Tensor:
+    def _additional_features(self, cluster: LongTensor, data: Batch) -> Tensor:
         """Additional poolings of feature tensor `x` on `data`.
 
         By default the nominal `pooling_method` is used for features as well.
         This method can be overwritten for bespoke coarsening operations.
         """
-        return None
 
     def _transfer_attributes(
-        self, cluster: LongTensor, original_data: Data, pooled_data: Data
-    ) -> Data:
+        self, cluster: LongTensor, original_data: Batch, pooled_data: Batch
+    ) -> Batch:
         """Transfer attributes on `original_data` to `pooled_data`."""
+        # Check(s)
         if not self._do_transfer_attributes:
             return pooled_data
 
         attributes = list(original_data._store.keys())
-        for attr in attributes:
+        batch: Optional[LongTensor] = original_data.batch
+        for ix, attr in enumerate(attributes):
             if attr not in pooled_data._store:
                 values = getattr(original_data, attr)
 
-                if (
-                    isinstance(values, Tensor)
-                    and values.size() == original_data.batch.size()
-                ):  # Node-level tensor
-                    values = self._attribute_reduce_method(
-                        cluster, values, original_data.batch
+                attr_is_node_level_tensor = False
+                if isinstance(values, Tensor):
+                    if batch is None:
+                        attr_is_node_level_tensor = (
+                            values.dim() > 1 or values.size(dim=0) > 1
+                        )
+                    else:
+                        attr_is_node_level_tensor = (
+                            values.size() == original_data.batch.size()
+                        )
+
+                if attr_is_node_level_tensor:
+                    values: Tensor = self._attribute_reduce_method(
+                        cluster,
+                        values,
+                        batch=torch.zeros_like(values, dtype=torch.int32),
                     )[0]
 
                 setattr(pooled_data, attr, values)
 
         return pooled_data
 
-    def __call__(self, data: Data) -> Data:
+    def __call__(self, data: Union[Data, Batch]) -> Union[Data, Batch]:
         """Coarsening operation."""
+
         # Get tensor of cluster indices for each node.
-        cluster = self._perform_clustering(data)
+        cluster: LongTensor = self._perform_clustering(data)
 
         # Check whether a graph has already been built. Otherwise, set a dummy
         # connectivity, as this is required by pooling functions.
@@ -92,7 +133,7 @@ class Coarsening(ABC):
             data.edge_index = torch.tensor([[]], dtype=torch.int64)
 
         # Pool `data` object, including `x`, `batch`. and `edge_index`.
-        pooled_data = self._reduce_method(cluster, data)
+        pooled_data: Batch = self._reduce_method(cluster, data)
 
         # Optionally overwrite feature tensor
         x = self._additional_features(cluster, data)
@@ -113,11 +154,42 @@ class Coarsening(ABC):
         # Transfer attributes on `data`, pooling as required.
         pooled_data = self._transfer_attributes(cluster, data, pooled_data)
 
+        # Reconstruct Batch Attributes
+        if isinstance(data, Batch):  # if a Batch object
+            pooled_data = self._reconstruct_batch(data, pooled_data)
         return pooled_data
+
+    def _reconstruct_batch(self, original, pooled):
+        pooled = self._add_slice_dict(original, pooled)
+        pooled = self._add_inc_dict(original, pooled)
+        return pooled
+
+    def _add_slice_dict(self, original, pooled):
+        # Copy original slice_dict and count nodes in each graph in pooled batch
+        slice_dict = deepcopy(original._slice_dict)
+        _, counts = torch.unique_consecutive(pooled.batch, return_counts=True)
+        # Reconstruct the entry in slice_dict for pulsemaps - only these are affected by pooling
+        pulsemap_slice = [0]
+        for i in range(len(counts)):
+            pulsemap_slice.append(pulsemap_slice[i] + counts[i].item())
+
+        # Identifies pulsemap entries in slice_dict and set them to pulsemap_slice
+        for field in slice_dict.keys():
+            if (original._num_graphs) == slice_dict[field][-1]:
+                pass  # not pulsemap, so skip
+            else:
+                slice_dict[field] = pulsemap_slice
+        pooled._slice_dict = slice_dict
+        return pooled
+
+    def _add_inc_dict(self, original, pooled):
+        # not changed by coarsening
+        pooled._inc_dict = deepcopy(original._inc_dict)
+        return pooled
 
 
 class DOMCoarsening(Coarsening):
-    def _perform_clustering(self, data: Data) -> LongTensor:
+    def _perform_clustering(self, data: Union[Data, Batch]) -> LongTensor:
         """Perform clustering of nodes in `data` by assigning unique cluster indices to each."""
         # dom_index = group_pulses_to_dom(data)
         dom_index = group_by(

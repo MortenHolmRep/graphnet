@@ -1,4 +1,4 @@
-import os.path
+import os
 
 from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks import EarlyStopping
@@ -33,11 +33,15 @@ torch.multiprocessing.set_sharing_strategy("file_system")
 features = FEATURES.DEEPCORE
 truth = TRUTH.DEEPCORE[:-1]
 
+# Make sure W&B output directory exists
+WANDB_DIR = "./wandb/"
+os.makedirs(WANDB_DIR, exist_ok=True)
+
 # Initialise Weights & Biases (W&B) run
 wandb_logger = WandbLogger(
     project="example-script",
     entity="graphnet-team",
-    save_dir="./wandb/",
+    save_dir=WANDB_DIR,
     log_model=True,
 )
 
@@ -54,7 +58,8 @@ def main():
         "pulsemap": "SRTTWOfflinePulsesDC",
         "batch_size": 512,
         "num_workers": 10,
-        "gpus": [1],
+        "accelerator": "gpu",
+        "devices": [0],
         "target": "energy",
         "n_epochs": 5,
         "patience": 5,
@@ -125,7 +130,8 @@ def main():
     ]
 
     trainer = Trainer(
-        gpus=config["gpus"],
+        accelerator=config["accelerator"],
+        devices=config["devices"],
         max_epochs=config["n_epochs"],
         callbacks=callbacks,
         log_every_n_steps=1,
