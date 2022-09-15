@@ -2,29 +2,34 @@
 
 import logging
 
-from graphnet.utilities.logging import get_logger
-
 from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks import EarlyStopping
-from pytorch_lightning.loggers import WandbLogger
+#from pytorch_lightning.loggers import WandbLogger
 import torch
 from torch.optim.adam import Adam
 
 from graphnet.components.loss_functions import LogCoshLoss
 from graphnet.data.constants import FEATURES, TRUTH
-from graphnet.data.sqlite.sqlite_selection import get_equal_proportion_neutrino_indices, get_desired_event_numbers
+from graphnet.data.sqlite.sqlite_selection import (
+    get_equal_proportion_neutrino_indices,
+)
 from graphnet.models import Model
 from graphnet.models.detector.icecube import IceCubeDeepCore
 from graphnet.models.gnn import DynEdge
 from graphnet.models.graph_builders import KNNGraphBuilder
-from graphnet.models.task.reconstruction import ZenithReconstructionWithKappa
+from graphnet.models.task.reconstruction import ZenithReconstruction
 from graphnet.models.training.callbacks import ProgressBar, PiecewiseLinearLR
-from graphnet.models.training.utils import get_predictions, make_dataloader, save_results
+from graphnet.models.training.utils import (
+    get_predictions, 
+    make_dataloader, #make_train_validation_dataloader
+    save_results,
+)
+from graphnet.utilities.logging import get_logger
 
-logger = get_logger(logging.DEBUG)
+#logger = get_logger(logging.DEBUG)
 
 # Configurations
-#torch.multiprocessing.set_sharing_strategy("file_system")
+torch.multiprocessing.set_sharing_strategy("file_system")
 
 # Initialise Weights & Biases (W&B) run
 #wandb_logger = WandbLogger(
@@ -51,17 +56,19 @@ def main(
         "pulsemap": "SRTInIcePulses",
         "batch_size": 512,
         "num_workers": 10,
-        "accelerator": "cpu",
-        "devices": "auto",
-        "target": "energy",
+        "accelerator": "gpu",
+        "devices": [0],
+        "target": "zenith",
         "n_epochs": 1,
         "patience": 1,
     }
     archive = output_path
-    run_name = "dynedge_{}_predict".format(config["target"])
+    run_name = "dynedge_{}_predict_zenith".format(config["target"])
 
     # Log configuration to W&B
     #wandb_logger.experiment.config.update(config)
+    train_selection, _ = get_equal_proportion_neutrino_indices(config["db"])
+    train_selection = train_selection[0:50000]
 
     prediction_dataloader = make_dataloader(
         config["db"],
@@ -80,7 +87,7 @@ def main(
     gnn = DynEdge(
         nb_inputs=detector.nb_outputs,
     )
-    task = ZenithReconstructionWithKappa(
+    task = ZenithReconstruction(
         hidden_size=gnn.nb_outputs,
         target_labels=config["target"],
         loss_function=LogCoshLoss(),
@@ -106,7 +113,8 @@ def main(
     ]
 
     trainer = Trainer(
-        gpus=config["accelerator"],
+        accelerator=config["accelerator"],
+        devices=config["devices"],
         max_epochs=config["n_epochs"],
         callbacks=callbacks,
         log_every_n_steps=1,
@@ -133,6 +141,6 @@ if __name__ == "__main__":
 
     input_db = "/groups/icecube/peter/storage/Sebastian_MoonDataL4.db"
     output_folder = "/groups/icecube/qgf305/storage/test/Saskia_datapipeline/L2_2018_1/"
-    model_path = "/groups/icecube/peter/storage/test/dev_lvl7_robustness_muon_neutrino_0000/dynedge_zenith_example/dynedge_zenith_example_model.pth"
+    model_path = "/groups/icecube/peter/storage/test/dev_lvl7_robustness_muon_neutrino_0000/dynedge_zenith_example/dynedge_zenith_example_state_dict.pth"
 
     main(input_db, output_folder, model_path)
