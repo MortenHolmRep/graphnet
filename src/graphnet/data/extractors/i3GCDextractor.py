@@ -9,7 +9,7 @@ if has_icecube_package():
 
 
 class I3GCDExtractor(ABC, LoggerMixin):
-    """Extracts relevant information from geometry frames as the gcd reference."""
+    """Extracts relevant information from geometry frames as the gcd reference, from an I3 file."""
 
     def __init__(self, name):
 
@@ -27,22 +27,3 @@ class I3GCDExtractor(ABC, LoggerMixin):
         i3_file = dataio.I3File(self._i3_file)
         g_frame = i3_file.pop_frame(icetray.I3Frame.Geometry)
         self._gcd_dict = g_frame["I3Geometry"].omgeo
-
-
-#class I3ExtractorCollection(list):
-#    """Class to manage multiple I3Extractors."""
-#
-#    def __init__(self, *extractors):
-#        # Check(s)
-#        for extractor in extractors:
-#            assert isinstance(extractor, I3GCDExtractor)
-#
-#        # Base class constructor
-#        super().__init__(extractors)
-#
-#    def set_files(self, i3_file, gcd_file):
-#        for extractor in self:
-#            extractor.set_files(i3_file, gcd_file)
-#
-#    def __call__(self, frame) -> List[dict]:
-#        return [extractor(frame) for extractor in self]
