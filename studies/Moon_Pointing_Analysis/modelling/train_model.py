@@ -1,4 +1,5 @@
 import os
+import argparse
 
 from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks import EarlyStopping
@@ -9,13 +10,14 @@ from torch.optim.adam import Adam
 from graphnet.components.loss_functions import LogCoshLoss
 from graphnet.data.constants import FEATURES, TRUTH
 from graphnet.data.sqlite.sqlite_selection import (
+    get_even_signal_background_indicies,
     get_equal_proportion_neutrino_indices,
 )
 from graphnet.models import Model
 from graphnet.models.detector.icecube import IceCubeDeepCore
 from graphnet.models.gnn import DynEdge
 from graphnet.models.graph_builders import KNNGraphBuilder
-from graphnet.models.task.reconstruction import EnergyReconstruction
+from graphnet.models.task.reconstruction import ZenithAndAzimuthReconstructionWithKappa
 from graphnet.models.training.callbacks import ProgressBar, PiecewiseLinearLR
 from graphnet.models.training.utils import (
     get_predictions,
@@ -49,28 +51,34 @@ wandb_logger = WandbLogger(
 # Main function definition
 def main():
 
+    parser = argparse.ArgumentParser(description='parameters')
+    parser.add_argument("-db", "--database", dest="database")
+    parser.add_argument("-r", "--reco", dest="reco")
+    args = parser.parse_args()
+
     logger.info(f"features: {features}")
     logger.info(f"truth: {truth}")
 
     # Configuration
     config = {
-        "db": "/groups/icecube/asogaard/data/sqlite/dev_lvl7_robustness_muon_neutrino_0000/data/dev_lvl7_robustness_muon_neutrino_0000.db",
-        "pulsemap": "SRTTWOfflinePulsesDC",
+        "db": args.db,
+        "pulsemap": "SRTInIcePulses",
         "batch_size": 512,
         "num_workers": 10,
-        "accelerator": "gpu",
-        "devices": [0],
+        "accelerator": "cpu", #"gpu",
+        "devices": "auto", #[0],
         "target": "energy",
         "n_epochs": 5,
         "patience": 5,
     }
-    archive = "/groups/icecube/asogaard/gnn/results/"
-    run_name = "dynedge_{}_example".format(config["target"])
+    archive = "/groups/icecube/qgf305/storage/test/combined_angle/"
+    run_name = "dynedge_{}_combined_angle_test".format(config["target"])
 
     # Log configuration to W&B
     wandb_logger.experiment.config.update(config)
 
     # Common variables
+    train_selection = get_even_signal_background_indicies(config["db"])
     train_selection, _ = get_equal_proportion_neutrino_indices(config["db"])
     train_selection = train_selection[0:50000]
 
@@ -94,7 +102,7 @@ def main():
     gnn = DynEdge(
         nb_inputs=detector.nb_outputs,
     )
-    task = EnergyReconstruction(
+    task = ZenithAndAzimuthReconstructionWithKappa(
         hidden_size=gnn.nb_outputs,
         target_labels=config["target"],
         loss_function=LogCoshLoss(),
