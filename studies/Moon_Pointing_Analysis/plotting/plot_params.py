@@ -1,3 +1,5 @@
+"""Standardizing plotting style across all plots"""
+
 SUPTITLE_SIZE = 16
 TITLE_SIZE = 16
 LABEL_SIZE = 16
