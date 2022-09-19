@@ -52,8 +52,8 @@ wandb_logger = WandbLogger(
 def main():
 
     parser = argparse.ArgumentParser(description='parameters')
-    parser.add_argument("-db", "--database", dest="database")
-    parser.add_argument("-r", "--reco", dest="reco")
+    parser.add_argument("-db", "--database", dest="db")
+    parser.add_argument("-o", "--out", dest="outpath")
     args = parser.parse_args()
 
     logger.info(f"features: {features}")
@@ -71,7 +71,7 @@ def main():
         "n_epochs": 5,
         "patience": 5,
     }
-    archive = "/groups/icecube/qgf305/storage/test/combined_angle/"
+    archive = args.outpath
     run_name = "dynedge_{}_combined_angle_test".format(config["target"])
 
     # Log configuration to W&B
@@ -79,8 +79,8 @@ def main():
 
     # Common variables
     train_selection = get_even_signal_background_indicies(config["db"])
-    train_selection, _ = get_equal_proportion_neutrino_indices(config["db"])
-    train_selection = train_selection[0:50000]
+    #train_selection, _ = get_equal_proportion_neutrino_indices(config["db"])
+    #train_selection = train_selection[0:50000]
 
     (
         training_dataloader,
