@@ -3,8 +3,9 @@ import torch
 
 from graphnet.models.task import Task
 from graphnet.utilities.maths import eps_like
+
 class ZenithAndAzimuthReconstructionWithKappa(Task):
-    """Reconstructs azimuthal and zenith angle."""
+    """Reconstructs azimuthal and zenith angle and associated kappa (1/var)"""
 
     # Requires two features: untransformed points in (x,y)-space.
     nb_inputs = 3
