@@ -47,5 +47,3 @@ ax.set_ylabel("x position")
 ax.set_zlabel('Z Label')
 plt.title(f"simple 3D scatter plot of dom positions for event #{event_numbers[0]}")
 plt.savefig("/groups/icecube/qgf305/work/graphnet/studies/Moon_Pointing_Analysis/plotting/scatter.png")
-
-test = 2

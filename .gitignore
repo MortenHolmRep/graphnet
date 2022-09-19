@@ -142,3 +142,5 @@ test_data/
 **.pth
 **.ipynb
 **.db
+
+*.png
