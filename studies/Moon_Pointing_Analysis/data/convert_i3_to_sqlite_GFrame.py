@@ -16,7 +16,6 @@ from graphnet.data.sqlite.sqlite_dataconverter import SQLiteDataConverter
 
 logger = get_logger(level=logging.DEBUG)
 
-
 def main_icecube86():
     """Main script function."""
     paths = [

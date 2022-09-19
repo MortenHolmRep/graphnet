@@ -19,11 +19,11 @@ logger = get_logger(level=logging.DEBUG)
 def main_icecube86():
     """Main script function."""
     paths = [
-        "/groups/icecube/asogaard/data/i3/i3_to_sqlite_workshop_test/level7_v02.00"
+        "/groups/icecube/qgf305/storage/I3_files/Sebastian_MoonL4/moonL4_segspline_exp13_01_redo_00001.i3.bz2"
     ]
     pulsemap = "SRTInIcePulses"
-    gcd_rescue = "resources/GeoCalibDetectorStatus_AVG_55697-57531_PASS2_SPE_withScaledNoise.i3.gz"
-    outdir = "/groups/icecube/asogaard/temp/sqlite_test_ic86"
+    gcd_rescue = "/groups/icecube/qgf305/storage/I3_files/Sebastian_MoonL4/Level2_IC86.2012_data_Run00121480_0101_GCD.i3.gz"
+    outdir = "/groups/icecube/qgf305/storage/I3_files/Sebastian_MoonL4/data_out"
 
     converter = SQLiteDataConverter(
         [
@@ -70,5 +70,5 @@ def main_icecube_upgrade():
 
 
 if __name__ == "__main__":
-    # main_icecube86()
-    main_icecube_upgrade()
+    main_icecube86()
+    # main_icecube_upgrade()
