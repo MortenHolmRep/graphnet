@@ -19,10 +19,10 @@ logger = get_logger(level=logging.DEBUG)
 def main_icecube86():
     """Main script function."""
     paths = [
-        "/groups/icecube/qgf305/storage/I3_files/Sebastian_MoonL4/moonL4_segspline_exp13_01_redo_00001.i3.bz2"
+        "/groups/icecube/qgf305/storage/I3_files/Sebastian_MoonL4/"
     ]
     pulsemap = "SRTInIcePulses"
-    gcd_rescue = "/groups/icecube/qgf305/storage/I3_files/Sebastian_MoonL4/Level2_IC86.2012_data_Run00121480_0101_GCD.i3.gz"
+    gcd_rescue = None #"/groups/icecube/qgf305/storage/I3_files/Sebastian_MoonL4/Level2_IC86.2012_data_Run00121480_0101_GCD.i3.gz"
     outdir = "/groups/icecube/qgf305/storage/I3_files/Sebastian_MoonL4/data_out"
 
     converter = SQLiteDataConverter(
