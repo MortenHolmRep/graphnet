@@ -52,8 +52,10 @@ wandb_logger = WandbLogger(
 def main():
 
     parser = argparse.ArgumentParser(description='parameters')
-    parser.add_argument("-db", "--database", dest="db")
-    parser.add_argument("-o", "--out", dest="outpath")
+    parser.add_argument("-db", "--database", dest="db", 
+        default="/groups/icecube/asogaard/data/sqlite/dev_lvl7_robustness_muon_neutrino_0000/data/dev_lvl7_robustness_muon_neutrino_0000.db"
+        )
+    parser.add_argument("-o", "--out", dest="outpath", default="/groups/icecube/qgf305/storage/test/combined_angle/")
     args = parser.parse_args()
 
     logger.info(f"features: {features}")
@@ -62,7 +64,7 @@ def main():
     # Configuration
     config = {
         "db": args.db,
-        "pulsemap": "SRTInIcePulses",
+        "pulsemap": "SRTTWOfflinePulsesDC",
         "batch_size": 512,
         "num_workers": 10,
         "accelerator": "cpu", #"gpu",
@@ -78,9 +80,9 @@ def main():
     wandb_logger.experiment.config.update(config)
 
     # Common variables
-    train_selection = get_even_signal_background_indicies(config["db"])
-    #train_selection, _ = get_equal_proportion_neutrino_indices(config["db"])
-    #train_selection = train_selection[0:50000]
+    #train_selection, _ = get_even_signal_background_indicies(config["db"])
+    train_selection, _ = get_equal_proportion_neutrino_indices(config["db"])
+    train_selection = train_selection[0:50000]
 
     (
         training_dataloader,
