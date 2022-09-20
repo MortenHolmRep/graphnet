@@ -7,7 +7,7 @@ from graphnet.utilities.maths import eps_like
 class ZenithAndAzimuthReconstructionWithKappa(Task):
     """Reconstructs azimuthal and zenith angle and associated kappa (1/var)"""
 
-    # Requires two features: untransformed points in (x,y)-space.
+    # Requires three features: untransformed points in (x,y,z)-space.
     nb_inputs = 3
     #0 = x, 1 = y, 2 = z
 
