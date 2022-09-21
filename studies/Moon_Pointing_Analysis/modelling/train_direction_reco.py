@@ -1,23 +1,23 @@
 import os
-import argparse
-
 from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks import EarlyStopping
 from pytorch_lightning.loggers import WandbLogger
 import torch
 from torch.optim.adam import Adam
 
-from graphnet.components.loss_functions import LogCoshLoss
+from graphnet.components.loss_functions import VonMisesFisher2DLoss
 from graphnet.data.constants import FEATURES, TRUTH
 from graphnet.data.sqlite.sqlite_selection import (
-    get_even_signal_background_indicies,
     get_equal_proportion_neutrino_indices,
 )
 from graphnet.models import Model
 from graphnet.models.detector.icecube import IceCubeDeepCore
-from graphnet.models.gnn import DynEdge
+from graphnet.models.gnn.dynedge import DynEdge, DOMCoarsenedDynEdge
 from graphnet.models.graph_builders import KNNGraphBuilder
-from graphnet.models.task.reconstruction import ZenithAndAzimuthReconstructionWithKappa
+from graphnet.models.task.reconstruction import (
+    ZenithReconstructionWithKappa,
+    AzimuthReconstructionWithKappa,
+)
 from graphnet.models.training.callbacks import ProgressBar, PiecewiseLinearLR
 from graphnet.models.training.utils import (
     get_predictions,
@@ -48,41 +48,16 @@ wandb_logger = WandbLogger(
 )
 
 
-# Main function definition
-def main():
-
-    parser = argparse.ArgumentParser(description='parameters')
-    parser.add_argument("-db", "--database", dest="db", 
-        default="/groups/icecube/asogaard/data/sqlite/dev_lvl7_robustness_muon_neutrino_0000/data/dev_lvl7_robustness_muon_neutrino_0000.db"
-        )
-    parser.add_argument("-o", "--out", dest="outpath", default="/groups/icecube/qgf305/storage/test/combined_angle/")
-    args = parser.parse_args()
-
-    logger.info(f"features: {features}")
-    logger.info(f"truth: {truth}")
-
-    # Configuration
-    config = {
-        "db": args.db,
-        "pulsemap": "SRTTWOfflinePulsesDC",
-        "batch_size": 512,
-        "num_workers": 10,
-        "accelerator": "cpu", #"gpu",
-        "devices": "auto", #[0],
-        "target": "energy",
-        "n_epochs": 5,
-        "patience": 5,
-    }
-    archive = args.outpath
-    run_name = "dynedge_{}_combined_angle_test".format(config["target"])
-
+def train(config):
     # Log configuration to W&B
     wandb_logger.experiment.config.update(config)
 
     # Common variables
-    #train_selection, _ = get_even_signal_background_indicies(config["db"])
     train_selection, _ = get_equal_proportion_neutrino_indices(config["db"])
     train_selection = train_selection[0:50000]
+
+    logger.info(f"features: {features}")
+    logger.info(f"truth: {truth}")
 
     (
         training_dataloader,
@@ -101,15 +76,27 @@ def main():
     detector = IceCubeDeepCore(
         graph_builder=KNNGraphBuilder(nb_nearest_neighbours=8),
     )
-    gnn = DynEdge(
-        nb_inputs=detector.nb_outputs,
-    )
-    task = ZenithAndAzimuthReconstructionWithKappa(
-        hidden_size=gnn.nb_outputs,
-        target_labels=config["target"],
-        loss_function=LogCoshLoss(),
-        transform_prediction_and_target=torch.log10,
-    )
+    if config["node_pooling"]:
+        gnn = DOMCoarsenedDynEdge(
+            nb_inputs=detector.nb_outputs,
+        )
+    else:
+        gnn = DynEdge(
+            nb_inputs=detector.nb_outputs,
+        )
+    if config["target"] == "zenith":
+        task = ZenithReconstructionWithKappa(
+            hidden_size=gnn.nb_outputs,
+            target_labels=config["target"],
+            loss_function=VonMisesFisher2DLoss(),
+        )
+    elif config["target"] == "azimuth":
+        task = AzimuthReconstructionWithKappa(
+            hidden_size=gnn.nb_outputs,
+            target_labels=config["target"],
+            loss_function=VonMisesFisher2DLoss(),
+        )
+
     model = Model(
         detector=detector,
         gnn=gnn,
@@ -163,7 +150,34 @@ def main():
         additional_attributes=[config["target"], "event_no"],
     )
 
-    save_results(config["db"], run_name, results, archive, model)
+    save_results(
+        config["db"], config["run_name"], results, config["archive"], model
+    )
+
+
+# Main function definition
+def main():
+    for target in ["zenith", "azimuth"]:
+        archive = "/groups/icecube/peter/workspace/graphnetmoon/graphnet/studies/Moon_Pointing_Analysis/modelling/TrainedModels/TestData"
+        run_name = "dynedge_{}_example".format(target)
+
+        # Configuration
+        config = {
+            "db": "/groups/icecube/asogaard/data/sqlite/dev_lvl7_robustness_muon_neutrino_0000/data/dev_lvl7_robustness_muon_neutrino_0000.db",
+            "pulsemap": "SRTTWOfflinePulsesDC",
+            "batch_size": 512,
+            "num_workers": 10,
+            "accelerator": "gpu",
+            "devices": [0],
+            "target": target,
+            "n_epochs": 5,
+            "patience": 5,
+            "archive": archive,
+            "run_name": run_name,
+            "max_events": 50000,
+            "node_pooling": False,
+        }
+        train(config)
 
 
 # Main function call
