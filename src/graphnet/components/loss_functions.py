@@ -73,6 +73,19 @@ class MSELoss(LossFunction):
         elements = torch.mean((prediction - target) ** 2, dim=-1)
         return elements
 
+class GaussLoss(LossFunction):
+    """Gaussian negative log likelihood loss."""
+
+    def _forward(self, prediction: Tensor, target: Tensor) -> Tensor:
+        """Implementation of loss calculation."""
+        # Check(s)
+        assert prediction.dim() == 3
+        assert prediction.size() == target.size()
+        variance = 1/prediction[:,2]
+
+        loss = torch.nn.GaussianNLLLoss()
+
+        return loss(prediction, target, variance, eps=1e-06, reduction='mean')
 
 class RMSELoss(MSELoss):
     """Root mean squared error loss."""
