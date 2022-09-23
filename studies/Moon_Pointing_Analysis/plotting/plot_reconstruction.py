@@ -3,6 +3,25 @@ from plot_params import *
 
 import pandas as pd
 from pandas import read_sql
+import numpy as np
+
+azimuth = "/groups/icecube/qgf305/storage/model/dev_lvl7_robustness_muon_neutrino_0000/dev_lvl7_robustness_muon_neutrino_0000/dynedge_zenith_example/results.csv"
+azimuth = pd.read_csv(azimuth)
+
+plt.figure()
+plt.hist2d(azimuth.zenith_pred, azimuth.zenith, bins = 100)
+plt.title("results: zenith prediction")
+plt.legend()
+plt.savefig("/groups/icecube/qgf305/work/graphnet/studies/Moon_Pointing_Analysis/plotting/azimuthResults.png")
+
+plt.figure()
+plt.plot(azimuth.zenith_pred, azimuth.zenith, '.')
+plt.title("results: zenith prediction")
+plt.legend()
+plt.savefig("/groups/icecube/qgf305/work/graphnet/studies/Moon_Pointing_Analysis/plotting/azimuth2Results.png")
+
+
+t = w
 
 inferenceResults = '/groups/icecube/qgf305/storage/test/Saskia_datapipeline/L2_2018_1/Sebastian_MoonDataL4/dynedge_zenith_predict_zenith/results.csv'
 df = pd.read_csv(inferenceResults)
