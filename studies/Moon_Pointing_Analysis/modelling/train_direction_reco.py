@@ -26,7 +26,7 @@ from graphnet.models.training.utils import (
 )
 from graphnet.utilities.logging import get_logger
 
-logger = get_logger()
+#logger = get_logger()
 
 # Configurations
 torch.multiprocessing.set_sharing_strategy("file_system")
@@ -40,24 +40,24 @@ WANDB_DIR = "./wandb/"
 os.makedirs(WANDB_DIR, exist_ok=True)
 
 # Initialise Weights & Biases (W&B) run
-wandb_logger = WandbLogger(
-    project="example-script",
-    entity="graphnet-team",
-    save_dir=WANDB_DIR,
-    log_model=True,
-)
-
+#wandb_logger = WandbLogger(
+#    project="example-script",
+#    entity="graphnet-team",
+#    save_dir=WANDB_DIR,
+#    log_model=True,
+#)
+#
 
 def train(config):
     # Log configuration to W&B
-    wandb_logger.experiment.config.update(config)
+ #   wandb_logger.experiment.config.update(config)
 
     # Common variables
     train_selection, _ = get_equal_proportion_neutrino_indices(config["db"])
-    train_selection = train_selection[0:50000]
+    train_selection = train_selection[0:]#config["max_events"]]
 
-    logger.info(f"features: {features}")
-    logger.info(f"truth: {truth}")
+#    logger.info(f"features: {features}")
+#    logger.info(f"truth: {truth}")
 
     (
         training_dataloader,
@@ -132,13 +132,13 @@ def train(config):
         max_epochs=config["n_epochs"],
         callbacks=callbacks,
         log_every_n_steps=1,
-        logger=wandb_logger,
+#        logger=wandb_logger,
     )
 
     try:
         trainer.fit(model, training_dataloader, validation_dataloader)
     except KeyboardInterrupt:
-        logger.warning("[ctrl+c] Exiting gracefully.")
+#        logger.warning("[ctrl+c] Exiting gracefully.")
         pass
 
     # Saving predictions to file
@@ -146,7 +146,7 @@ def train(config):
         trainer,
         model,
         validation_dataloader,
-        [config["target"] + "_pred"],
+        [config["target"] + "_pred",config["target"] + "_kappa_pred" ],
         additional_attributes=[config["target"], "event_no"],
     )
 
@@ -159,7 +159,7 @@ def train(config):
 def main():
     for target in ["zenith", "azimuth"]:
         archive = "/groups/icecube/peter/workspace/graphnetmoon/graphnet/studies/Moon_Pointing_Analysis/modelling/TrainedModels/TestData"
-        run_name = "dynedge_{}_example".format(target)
+        run_name = "dynedge_{}_all_example".format(target)
 
         # Configuration
         config = {
@@ -168,13 +168,13 @@ def main():
             "batch_size": 512,
             "num_workers": 10,
             "accelerator": "gpu",
-            "devices": [0],
+            "devices": [1],
             "target": target,
-            "n_epochs": 5,
+            "n_epochs": 100,
             "patience": 5,
             "archive": archive,
             "run_name": run_name,
-            "max_events": 50000,
+            "max_events": 500000,
             "node_pooling": False,
         }
         train(config)
