@@ -8,7 +8,7 @@ from torch.optim.adam import Adam
 from graphnet.components.loss_functions import VonMisesFisher2DLoss
 from graphnet.data.constants import FEATURES, TRUTH
 from graphnet.data.sqlite.sqlite_selection import (
-    get_equal_proportion_neutrino_indices,
+    get_equal_proportion_neutrino_indices,get_desired_event_numbers,
 )
 from graphnet.models import Model
 from graphnet.models.detector.icecube import IceCubeDeepCore
@@ -53,9 +53,9 @@ def train(config):
  #   wandb_logger.experiment.config.update(config)
 
     # Common variables
-    train_selection, _ = get_equal_proportion_neutrino_indices(config["db"])
-    train_selection = train_selection[0:]#config["max_events"]]
-
+    #train_selection, _ = get_equal_proportion_neutrino_indices(config["db"])
+    #train_selection = train_selection[0:]#config["max_events"]]
+    train_selection  = get_desired_event_numbers(config["db"],desired_size=500000000,fraction_muon=1)
 #    logger.info(f"features: {features}")
 #    logger.info(f"truth: {truth}")
 
@@ -158,13 +158,13 @@ def train(config):
 # Main function definition
 def main():
     for target in ["zenith", "azimuth"]:
-        archive = "/groups/icecube/peter/workspace/graphnetmoon/graphnet/studies/Moon_Pointing_Analysis/modelling/TrainedModels/TestData"
-        run_name = "dynedge_{}_all_example".format(target)
+        archive = "/groups/icecube/peter/storage/MoonPointing/Models/Leon_Muon_data_MC"
+        run_name = "dynedge_{}_Leon_muon_data_MC".format(target)
 
         # Configuration
         config = {
-            "db": "/groups/icecube/asogaard/data/sqlite/dev_lvl7_robustness_muon_neutrino_0000/data/dev_lvl7_robustness_muon_neutrino_0000.db",
-            "pulsemap": "SRTTWOfflinePulsesDC",
+            "db": "/groups/icecube/peter/storage/MoonPointing/MC_data_for_training/Leon_muon_and_mu_data/last_one_lvl3MC.db",
+            "pulsemap": "SRTInIcePulses",
             "batch_size": 512,
             "num_workers": 10,
             "accelerator": "gpu",

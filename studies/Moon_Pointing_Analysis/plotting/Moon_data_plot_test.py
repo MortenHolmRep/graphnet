@@ -23,7 +23,7 @@ bad_selection_mask = np.logical_not(good_selection_mask)
 
 plot_first = len(zenith)
 
-to_angles = True
+to_angles = False
 if to_angles == True:
     zenith = zenith*180/np.pi
     azimuth = azimuth*180/np.pi

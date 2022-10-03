@@ -1,0 +1,6 @@
+[1;34mgraphnet[0m: [32mINFO    [0m 2022-10-03 16:34:55 - get_logger - Writing log to [1mlogs/graphnet_20221003-163455.log[0m
+[1;34mgraphnet[0m: [33mWARNING [0m 2022-10-03 16:34:55 - <module> - icecube package not available.[0m
+[1;34mgraphnet[0m: [33mWARNING [0m 2022-10-03 16:34:55 - <module> - icecube package not available.[0m
+[1;34mgraphnet[0m: [33mWARNING [0m 2022-10-03 16:34:55 - <module> - icecube package not available.[0m
+[1;34mgraphnet[0m: [33mWARNING [0m 2022-10-03 16:34:55 - <module> - icecube package not available.[0m
+[1;34mgraphnet[0m: [32mINFO    [0m 2022-10-03 16:35:27 - get_desired_event_numbers - Only 48264019 events in database, using this number instead.[0m

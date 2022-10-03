@@ -9,7 +9,7 @@ from torch.optim.adam import Adam
 from graphnet.components.loss_functions import LogCoshLoss, GaussianNLLLoss
 from graphnet.data.constants import FEATURES, TRUTH
 from graphnet.data.sqlite.sqlite_selection import (
-    get_equal_proportion_neutrino_indices,
+    get_equal_proportion_neutrino_indices,get_desired_event_numbers,
 )
 from graphnet.models import Model
 from graphnet.models.detector.icecube import IceCubeDeepCore
@@ -67,14 +67,15 @@ def main():
         "patience": 5,
     }
     archive = "/groups/icecube/peter/storage/MoonPointing/data/Sschindler_data_L4/Trained_Models"
-    run_name = "dynedge_both_angles_500k_example" #"dynedge_{}_example".format(config["target"])
+    run_name = "dynedge_{}_example".format(config["target"])
 
     # Log configuration to W&B
     #wandb_logger.experiment.config.update(config)
 
     # Common variables
-    train_selection, _ = get_equal_proportion_neutrino_indices(config["db"])
-    train_selection = train_selection[0:500000]
+    #train_selection, _ = get_equal_proportion_neutrino_indices(config["db"])
+    #train_selection = train_selection[0:500000]
+    train_selection  = get_desired_event_numbers(config["db"],desired_size= 50000,fraction_muon=1)
 
     (
         training_dataloader,
