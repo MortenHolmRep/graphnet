@@ -19,9 +19,8 @@ zenith_std = 1/np.sqrt(zenith_db.zenith_kappa_pred)
 #zenith[zenith>np.pi/2] = np.pi-zenith[zenith>np.pi/2] 
 
 good_selection_mask = np.array(zenith> 0.1)*np.array(zenith_std<1)*np.array(azimuth_std<1)
-bad_selection_mask = False*good_selection_mask
-print(good_selection_mask[:10])
-print(len(bad_selection_mask))
+bad_selection_mask = np.logical_not(good_selection_mask)
+
 plot_first = len(zenith)
 
 to_angles = False
@@ -46,7 +45,7 @@ axs[0,1].set_xlabel("zenith")
 axs[1,1].hist(azimuth[bad_selection_mask][:plot_first],bin_number)
 axs[1,1].set_title('bad selection')
 axs[1,1].set_xlabel("azimuth")
-
+fig.tight_layout()
 fig.savefig("/groups/icecube/peter/workspace/graphnetmoon/graphnet/studies/Moon_Pointing_Analysis/plotting/Test_Plots/Sschindler_L4_data_first_plots/Angular_reconstruction_test_zenith_binned.png")
 
 plt.figure()
@@ -56,23 +55,36 @@ plt.xlabel('azimuth')
 plt.ylabel('zenith')
 plt.colorbar()
 plt.legend()
+plt.tight_layout()
 plt.savefig("/groups/icecube/peter/workspace/graphnetmoon/graphnet/studies/Moon_Pointing_Analysis/plotting/Test_Plots/Sschindler_L4_data_first_plots/Angular_reconstruction_test.png")
 
 
-plt.figure()
-plt.hist2d(azimuth[bad_selection_mask][:plot_first], zenith[bad_selection_mask][:plot_first], bins = bin_number,cmap='viridis')
-plt.title("results: angular reconstruction removed events!")
-plt.xlabel('azimuth')
-plt.ylabel('zenith')
-plt.colorbar()
-plt.legend()
-plt.savefig("/groups/icecube/peter/workspace/graphnetmoon/graphnet/studies/Moon_Pointing_Analysis/plotting/Test_Plots/Sschindler_L4_data_first_plots/Angular_reconstruction_test_removed_events.png")
+fig, axs = plt.subplots(2,2,figsize=(16, 8))
 
-plt.figure()
-plt.hist2d(zenith[good_selection_mask][:plot_first], azimuth_std[good_selection_mask][:plot_first], bins = bin_number,cmap='viridis')
-#plt.title("results: angular reconstruction")
-plt.xlabel('zenith')
-plt.ylabel('zenith std')
-plt.colorbar()
-plt.legend()
-plt.savefig("/groups/icecube/peter/workspace/graphnetmoon/graphnet/studies/Moon_Pointing_Analysis/plotting/Test_Plots/Sschindler_L4_data_first_plots/zenith_vs_zenith_std.png")
+axs[0,0].hist2d(zenith[good_selection_mask][:plot_first], zenith_std[good_selection_mask][:plot_first], bins = bin_number,cmap='viridis')
+axs[0,0].set_ylabel('zenith_std')
+axs[0,0].set_xlabel("zenith")
+
+axs[1,0].hist2d(zenith[good_selection_mask][:plot_first], azimuth_std[good_selection_mask][:plot_first], bins = bin_number,cmap='viridis')
+axs[1,0].set_ylabel('azimuth_std')
+axs[1,0].set_xlabel("zenith")
+
+axs[0,1].hist2d(azimuth[good_selection_mask][:plot_first], azimuth_std[good_selection_mask][:plot_first], bins = bin_number,cmap='viridis')
+axs[0,1].set_ylabel('azimuth_std')
+axs[0,1].set_xlabel("azimuth")
+
+axs[1,1].hist2d(azimuth[good_selection_mask][:plot_first], zenith_std[good_selection_mask][:plot_first], bins = bin_number,cmap='viridis')
+axs[1,1].set_ylabel('zenith_std')
+axs[1,1].set_xlabel("azimuth")
+
+fig.tight_layout()
+fig.savefig("/groups/icecube/peter/workspace/graphnetmoon/graphnet/studies/Moon_Pointing_Analysis/plotting/Test_Plots/Sschindler_L4_data_first_plots/Angular_reconstruction_angles_vs_uncertainties.png")
+
+
+test = np.array(zenith< 0.1)
+test2 = []
+for i in range(len(test)):
+    if test[i] == True:
+        test2.append(i)
+#print(test2)
+#print(len(test2))

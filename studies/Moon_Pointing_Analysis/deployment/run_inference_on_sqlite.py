@@ -145,8 +145,8 @@ def main(
 # Main function call
 if __name__ == "__main__":
 
-    input_db = "/groups/icecube/peter/storage/MoonPointing/data/Sschindler_data_L4/Merged_database.db"
-    output_folder = "/groups/icecube/peter/storage/MoonPointing/data/Sschindler_data_L4"
+    input_db = "/groups/icecube/peter/storage/MoonPointing/data/Sschindler_data_L4/Merged_database/Merged_database.db"
+    output_folder = "/groups/icecube/peter/storage/MoonPointing/data/Sschindler_data_L4/Merged_database"
     model_path = "/groups/icecube/peter/workspace/graphnetmoon/graphnet/studies/Moon_Pointing_Analysis/modelling/TrainedModels/TestData/dev_lvl7_robustness_muon_neutrino_0000/dynedge_zenith_all_example/dynedge_zenith_all_example_state_dict.pth"
 
     main(input_db, output_folder, model_path)

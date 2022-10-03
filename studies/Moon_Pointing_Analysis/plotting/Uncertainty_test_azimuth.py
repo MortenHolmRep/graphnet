@@ -16,10 +16,10 @@ from Troels_external_functions import nice_string_output, add_text_to_ax   # Use
 
 bin_number = 500
 
-azimuth_db = "/groups/icecube/peter/workspace/graphnetmoon/graphnet/studies/Moon_Pointing_Analysis/modelling/TrainedModels/TestData/dev_lvl7_robustness_muon_neutrino_0000/dynedge_azimuth_all_example/results.csv"
+azimuth_db = "/groups/icecube/peter/storage/MoonPointing/data/Sschindler_data_L4/Trained_Models/dynedge_azimuth_all_example/results.csv"
 azimuth_db = pd.read_csv(azimuth_db)
 #print(azimuth_db.head(10))
-zenith_db = "/groups/icecube/peter/workspace/graphnetmoon/graphnet/studies/Moon_Pointing_Analysis/modelling/TrainedModels/TestData/dev_lvl7_robustness_muon_neutrino_0000/dynedge_zenith_all_example/results.csv"
+zenith_db = "/groups/icecube/peter/storage/MoonPointing/data/Sschindler_data_L4/Trained_Models/dynedge_zenith_all_example/results.csv"
 zenith_db = pd.read_csv(zenith_db)
 zenith = zenith_db.zenith
 
