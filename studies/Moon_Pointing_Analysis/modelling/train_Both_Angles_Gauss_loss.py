@@ -6,7 +6,7 @@ from pytorch_lightning.loggers import WandbLogger
 import torch
 from torch.optim.adam import Adam
 
-from graphnet.components.loss_functions import LogCoshLoss, GaussLoss
+from graphnet.components.loss_functions import LogCoshLoss, GaussianNLLLoss
 from graphnet.data.constants import FEATURES, TRUTH
 from graphnet.data.sqlite.sqlite_selection import (
     get_equal_proportion_neutrino_indices,
@@ -15,7 +15,7 @@ from graphnet.models import Model
 from graphnet.models.detector.icecube import IceCubeDeepCore
 from graphnet.models.gnn import DynEdge
 from graphnet.models.graph_builders import KNNGraphBuilder
-from graphnet.models.task.reconstruction import EnergyReconstruction
+from graphnet.models.task.reconstruction import EnergyReconstruction, PointingReconstructionWithKappa
 from graphnet.models.training.callbacks import ProgressBar, PiecewiseLinearLR
 from graphnet.models.training.utils import (
     get_predictions,
@@ -26,7 +26,7 @@ from graphnet.utilities.logging import get_logger
 
 from graphnet.models.task.reconstruction import ZenithAndAzimuthReconstructionWithKappa
 
-logger = get_logger()
+#logger = get_logger()
 
 # Configurations
 torch.multiprocessing.set_sharing_strategy("file_system")
@@ -36,23 +36,23 @@ features = FEATURES.DEEPCORE
 truth = TRUTH.DEEPCORE[:-1]
 
 # Make sure W&B output directory exists
-WANDB_DIR = "./wandb/"
-os.makedirs(WANDB_DIR, exist_ok=True)
+#WANDB_DIR = "./wandb/"
+#os.makedirs(WANDB_DIR, exist_ok=True)
 
 # Initialise Weights & Biases (W&B) run
-wandb_logger = WandbLogger(
-    project="example-script",
-    entity="graphnet-team",
-    save_dir=WANDB_DIR,
-    log_model=True,
-)
+#wandb_logger = WandbLogger(
+#    project="example-script",
+#    entity="graphnet-team",
+#    save_dir=WANDB_DIR,
+#    log_model=True,
+#)
 
 
 # Main function definition
 def main():
 
-    logger.info(f"features: {features}")
-    logger.info(f"truth: {truth}")
+    #logger.info(f"features: {features}")
+    #logger.info(f"truth: {truth}")
 
     # Configuration
     config = {
@@ -63,18 +63,18 @@ def main():
         "accelerator": "gpu",
         "devices": [1],
         "target": ["zenith","azimuth"],
-        "n_epochs": 5,
+        "n_epochs": 100,
         "patience": 5,
     }
-    archive = "/groups/icecube/peter/workspace/graphnetmoon/graphnet/studies/Moon_Pointing_Analysis/modelling/TrainedModels/TestData"
-    run_name = "dynedge_{}_example".format(config["target"])
+    archive = "/groups/icecube/peter/storage/MoonPointing/data/Sschindler_data_L4/Trained_Models"
+    run_name = "dynedge_both_angles_500k_example" #"dynedge_{}_example".format(config["target"])
 
     # Log configuration to W&B
-    wandb_logger.experiment.config.update(config)
+    #wandb_logger.experiment.config.update(config)
 
     # Common variables
     train_selection, _ = get_equal_proportion_neutrino_indices(config["db"])
-    train_selection = train_selection[0:50000]
+    train_selection = train_selection[0:500000]
 
     (
         training_dataloader,
@@ -96,10 +96,10 @@ def main():
     gnn = DynEdge(
         nb_inputs=detector.nb_outputs,
     )
-    task = ZenithAndAzimuthReconstructionWithKappa(
+    task = PointingReconstructionWithKappa(
         hidden_size=gnn.nb_outputs,
         target_labels=config["target"],
-        loss_function=GaussLoss(),
+        loss_function=GaussianNLLLoss(),
         #transform_prediction_and_target=torch.log10,
     )
     model = Model(
@@ -137,7 +137,7 @@ def main():
         max_epochs=config["n_epochs"],
         callbacks=callbacks,
         log_every_n_steps=1,
-        logger=wandb_logger,
+        #logger=wandb_logger,
     )
 
     try:
@@ -151,8 +151,8 @@ def main():
         trainer,
         model,
         validation_dataloader,
-        [config["target"] + "_pred"],
-        additional_attributes=[config["target"], "event_no"],
+        [config["target"][0] + "_pred", config["target"][1] + "_pred", "kappa_pred"],
+        additional_attributes=[config["target"][0],config["target"][1], "event_no"],
     )
 
     save_results(config["db"], run_name, results, archive, model)

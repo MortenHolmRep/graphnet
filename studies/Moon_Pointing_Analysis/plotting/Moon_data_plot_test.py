@@ -5,7 +5,7 @@ import pandas as pd
 from pandas import read_sql
 import numpy as np
 
-bin_number = 50
+bin_number = 100
 
 azimuth_db = "/groups/icecube/peter/storage/MoonPointing/data/Sschindler_data_L4/Merged_database/azimuth_results.csv"
 azimuth_db = pd.read_csv(azimuth_db)
@@ -23,7 +23,7 @@ bad_selection_mask = np.logical_not(good_selection_mask)
 
 plot_first = len(zenith)
 
-to_angles = False
+to_angles = True
 if to_angles == True:
     zenith = zenith*180/np.pi
     azimuth = azimuth*180/np.pi
@@ -65,13 +65,16 @@ axs[0,0].hist2d(zenith[good_selection_mask][:plot_first], zenith_std[good_select
 axs[0,0].set_ylabel('zenith_std')
 axs[0,0].set_xlabel("zenith")
 
+
 axs[1,0].hist2d(zenith[good_selection_mask][:plot_first], azimuth_std[good_selection_mask][:plot_first], bins = bin_number,cmap='viridis')
 axs[1,0].set_ylabel('azimuth_std')
 axs[1,0].set_xlabel("zenith")
 
+
 axs[0,1].hist2d(azimuth[good_selection_mask][:plot_first], azimuth_std[good_selection_mask][:plot_first], bins = bin_number,cmap='viridis')
 axs[0,1].set_ylabel('azimuth_std')
 axs[0,1].set_xlabel("azimuth")
+
 
 axs[1,1].hist2d(azimuth[good_selection_mask][:plot_first], zenith_std[good_selection_mask][:plot_first], bins = bin_number,cmap='viridis')
 axs[1,1].set_ylabel('zenith_std')
@@ -86,18 +89,22 @@ fig, axs = plt.subplots(2,2,figsize=(16, 8))
 axs[0,0].hist(zenith_std[good_selection_mask][:plot_first],bin_number)
 axs[0,0].set_title('good selection')
 axs[0,0].set_xlabel("zenith std")
+axs[0,0].set_xlim((0,1))
 
 axs[1,0].hist(azimuth_std[good_selection_mask][:plot_first],bin_number)
 axs[1,0].set_title('good selection')
 axs[1,0].set_xlabel("azimuth std")
+axs[1,0].set_xlim((0,1))
 
-axs[0,1].hist(zenith_std[bad_selection_mask][:plot_first],bin_number)
+axs[0,1].hist(zenith_std[bad_selection_mask][:plot_first],bin_number*8)
 axs[0,1].set_title('bad selection')
 axs[0,1].set_xlabel("zenith std")
+axs[0,1].set_xlim((0,1))
 
-axs[1,1].hist(azimuth_std[bad_selection_mask][:plot_first],bin_number)
+axs[1,1].hist(azimuth_std[bad_selection_mask][:plot_first],bin_number*3)
 axs[1,1].set_title('bad selection')
 axs[1,1].set_xlabel("azimuth std")
+axs[1,1].set_xlim((0,1))
 fig.tight_layout()
 fig.savefig("/groups/icecube/peter/workspace/graphnetmoon/graphnet/studies/Moon_Pointing_Analysis/plotting/Test_Plots/Sschindler_L4_data_first_plots/Angular_reconstruction_test_uncertainties_binned.png")
 
@@ -110,5 +117,5 @@ test2 = []
 for i in range(len(test)):
     if test[i] == True:
         test2.append(i)
-#print(test2)
-#print(len(test2))
+print(test2)
+print(len(test2))

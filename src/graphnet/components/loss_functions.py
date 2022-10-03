@@ -61,6 +61,19 @@ class LossFunction(_WeightedLoss):
         """Syntax similar to `.forward` for implentation in inheriting classes."""
 
 
+class GaussianNLLLoss(LossFunction):
+    """Gaussian negative log likelihood loss."""
+
+    def _forward(self, prediction: Tensor, target: Tensor) -> Tensor:
+        """Implementation of loss calculation."""
+
+        loss = torch.nn.GaussianNLLLoss(eps=1e-06, reduction="none")
+
+        variance = 1.0 / prediction[:, 2]
+        elements = loss(prediction, target, variance)
+        elements = torch.sum(elements, dim=-1)  # Sum along coordinate dimension
+        return elements
+
 class MSELoss(LossFunction):
     """Mean squared error loss."""
 
