@@ -147,7 +147,7 @@ ax.set(xlabel="Z-score", # the label of the y axis
        ylabel="Frequency",  # the label of the y axis
        title=f"Distribution of z-scores for {target}") # the title of the plot
 ax.legend(loc='upper left'); # could also be # loc = 'upper right' e.g.
-plt.savefig("/groups/icecube/peter/workspace/graphnetmoon/graphnet/studies/Moon_Pointing_Analysis/plotting/Uncertainty_test/Azimuth_Z_score_double_gaussian.png")
+plt.savefig("/groups/icecube/peter/workspace/graphnetmoon/graphnet/studies/Moon_Pointing_Analysis/plotting/Test_Plots/Model_trained_on_neutrinos/Uncertainty_test/Azimuth_Z_score_double_gaussian.png")
 
 
 fig, ax = plt.subplots(figsize=(16, 8))  # figsize is in inches
@@ -164,7 +164,7 @@ ax.set(xlabel="Z-score", # the label of the y axis
        ylabel="Frequency",  # the label of the y axis
        title=f"Distribution of z-scores for {target}") # the title of the plot
 ax.legend(loc='upper left'); # could also be # loc = 'upper right' e.g.
-plt.savefig("/groups/icecube/peter/workspace/graphnetmoon/graphnet/studies/Moon_Pointing_Analysis/plotting/Uncertainty_test/Azimuth_Z_score_single_gaussian.png")
+plt.savefig("/groups/icecube/peter/workspace/graphnetmoon/graphnet/studies/Moon_Pointing_Analysis/plotting/Test_Plots/Model_trained_on_neutrinos/Uncertainty_test/Azimuth_Z_score_single_gaussian.png")
 
 
 bin_number_2 = 50
@@ -173,4 +173,4 @@ plt.hist2d(zenith, azimuth_diff, bins = bin_number_2,cmap='viridis')
 plt.title("Azimuthal error as function of true zenith")
 plt.colorbar()
 plt.legend()
-plt.savefig("/groups/icecube/peter/workspace/graphnetmoon/graphnet/studies/Moon_Pointing_Analysis/plotting/Uncertainty_test/Azimuth_Z_score_per_zenith.png")
+plt.savefig("/groups/icecube/peter/workspace/graphnetmoon/graphnet/studies/Moon_Pointing_Analysis/plotting/Test_Plots/Model_trained_on_neutrinos/Uncertainty_test/Azimuth_Z_score_per_zenith.png")

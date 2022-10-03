@@ -16,7 +16,7 @@ from Troels_external_functions import nice_string_output, add_text_to_ax   # Use
 
 bin_number = 500
 
-zenith_db = "/groups/icecube/peter/workspace/graphnetmoon/graphnet/studies/Moon_Pointing_Analysis/modelling/TrainedModels/TestData/dev_lvl7_robustness_muon_neutrino_0000/dynedge_zenith_all_example/results.csv"
+zenith_db = "/groups/icecube/peter/storage/MoonPointing/data/Sschindler_data_L4/Trained_Models/dynedge_zenith_all_example/results.csv"
 zenith_db = pd.read_csv(zenith_db)
 print(zenith_db.head(10))
 
@@ -118,7 +118,7 @@ ax.set(xlabel="Z-score", # the label of the y axis
        ylabel="Frequency",  # the label of the y axis
        title=f"Distribution of z-scores for {target}") # the title of the plot
 ax.legend(loc='upper left'); # could also be # loc = 'upper right' e.g.
-plt.savefig("/groups/icecube/peter/workspace/graphnetmoon/graphnet/studies/Moon_Pointing_Analysis/plotting/Uncertainty_test/zenith_Z_score.png")
+plt.savefig("/groups/icecube/peter/workspace/graphnetmoon/graphnet/studies/Moon_Pointing_Analysis/plotting/Test_Plots/Model_trained_on_neutrinos/Uncertainty_test/zenith_Z_score.png")
 
 
 

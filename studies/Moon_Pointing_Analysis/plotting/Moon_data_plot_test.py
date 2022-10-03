@@ -7,12 +7,12 @@ import numpy as np
 
 bin_number = 50
 
-azimuth_db = "/groups/icecube/peter/storage/MoonPointing/data/Sschindler_data_L4/azimuth_results.csv"
+azimuth_db = "/groups/icecube/peter/storage/MoonPointing/data/Sschindler_data_L4/Merged_database/azimuth_results.csv"
 azimuth_db = pd.read_csv(azimuth_db)
 azimuth = azimuth_db.azimuth_pred
 azimuth_std = 1/np.sqrt(azimuth_db.azimuth_kappa_pred)
 
-zenith_db = "/groups/icecube/peter/storage/MoonPointing/data/Sschindler_data_L4/zenith_results.csv"
+zenith_db = "/groups/icecube/peter/storage/MoonPointing/data/Sschindler_data_L4/Merged_database/zenith_results.csv"
 zenith_db = pd.read_csv(zenith_db)
 zenith = zenith_db.zenith_pred
 zenith_std = 1/np.sqrt(zenith_db.zenith_kappa_pred)
@@ -46,7 +46,7 @@ axs[1,1].hist(azimuth[bad_selection_mask][:plot_first],bin_number)
 axs[1,1].set_title('bad selection')
 axs[1,1].set_xlabel("azimuth")
 fig.tight_layout()
-fig.savefig("/groups/icecube/peter/workspace/graphnetmoon/graphnet/studies/Moon_Pointing_Analysis/plotting/Test_Plots/Sschindler_L4_data_first_plots/Angular_reconstruction_test_zenith_binned.png")
+fig.savefig("/groups/icecube/peter/workspace/graphnetmoon/graphnet/studies/Moon_Pointing_Analysis/plotting/Test_Plots/Sschindler_L4_data_first_plots/Angular_reconstruction_test_angles_binned.png")
 
 plt.figure()
 plt.hist2d(azimuth[good_selection_mask][:plot_first], zenith[good_selection_mask][:plot_first], bins = bin_number,cmap='viridis')
@@ -79,6 +79,30 @@ axs[1,1].set_xlabel("azimuth")
 
 fig.tight_layout()
 fig.savefig("/groups/icecube/peter/workspace/graphnetmoon/graphnet/studies/Moon_Pointing_Analysis/plotting/Test_Plots/Sschindler_L4_data_first_plots/Angular_reconstruction_angles_vs_uncertainties.png")
+
+
+fig, axs = plt.subplots(2,2,figsize=(16, 8))
+
+axs[0,0].hist(zenith_std[good_selection_mask][:plot_first],bin_number)
+axs[0,0].set_title('good selection')
+axs[0,0].set_xlabel("zenith std")
+
+axs[1,0].hist(azimuth_std[good_selection_mask][:plot_first],bin_number)
+axs[1,0].set_title('good selection')
+axs[1,0].set_xlabel("azimuth std")
+
+axs[0,1].hist(zenith_std[bad_selection_mask][:plot_first],bin_number)
+axs[0,1].set_title('bad selection')
+axs[0,1].set_xlabel("zenith std")
+
+axs[1,1].hist(azimuth_std[bad_selection_mask][:plot_first],bin_number)
+axs[1,1].set_title('bad selection')
+axs[1,1].set_xlabel("azimuth std")
+fig.tight_layout()
+fig.savefig("/groups/icecube/peter/workspace/graphnetmoon/graphnet/studies/Moon_Pointing_Analysis/plotting/Test_Plots/Sschindler_L4_data_first_plots/Angular_reconstruction_test_uncertainties_binned.png")
+
+
+
 
 
 test = np.array(zenith< 0.1)
