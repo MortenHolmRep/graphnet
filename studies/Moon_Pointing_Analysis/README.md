@@ -1,3 +1,11 @@
-The study is set up with a pipeline for easy recreation, by simply running the provided bash files.
+The study is set up with a pipeline for easy recreation, by simply running the provided bash files in order.
 
-The data used were:
+## Data
+
+## Deployment
+
+## Modelling
+
+## Plotting
+
+
