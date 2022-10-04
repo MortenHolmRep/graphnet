@@ -55,7 +55,7 @@ def train(config):
     # Common variables
     #train_selection, _ = get_equal_proportion_neutrino_indices(config["db"])
     #train_selection = train_selection[0:]#config["max_events"]]
-    train_selection  = get_desired_event_numbers(config["db"],desired_size=500000000,fraction_muon=1)
+    train_selection  = get_desired_event_numbers(config["db"],desired_size=50000,fraction_muon=1)
 #    logger.info(f"features: {features}")
 #    logger.info(f"truth: {truth}")
 
@@ -158,19 +158,19 @@ def train(config):
 # Main function definition
 def main():
     for target in ["zenith", "azimuth"]:
-        archive = "/groups/icecube/peter/storage/MoonPointing/Models/Leon_Muon_data_MC"
-        run_name = "dynedge_{}_Leon_muon_data_MC".format(target)
+        archive = "/groups/icecube/qgf305/storage/MoonPointing/Models/MC/GenieL2_Muon_Leon"
+        run_name = "dynedge_{}_GenieL2_Muon_Leon".format(target)
 
         # Configuration
         config = {
-            "db": "/groups/icecube/peter/storage/MoonPointing/MC_data_for_training/Leon_muon_and_mu_data/last_one_lvl3MC.db",
+            "db": "/groups/icecube/leonbozi/work2/data/lvl3_dbs/last_one_lvl3MC/data/last_one_lvl3MC.db",
             "pulsemap": "SRTInIcePulses",
-            "batch_size": 512,
+            "batch_size": 1024,
             "num_workers": 10,
             "accelerator": "gpu",
-            "devices": [1],
+            "devices": [0],
             "target": target,
-            "n_epochs": 100,
+            "n_epochs": 20,
             "patience": 5,
             "archive": archive,
             "run_name": run_name,
