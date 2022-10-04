@@ -63,7 +63,7 @@ def main(
         "patience": 1,
     }
     archive = output_path
-    run_name = "dynedge_{}_predict_azimuth".format(config["target"])
+    run_name = "dynedge_trained_on_leon_MC_{}_predict_azimuth".format(config["target"])
 
     # Log configuration to W&B
     #wandb_logger.experiment.config.update(config)
@@ -140,13 +140,13 @@ def main(
     )
 
     #save_results(config["db"], run_name, results, archive, model)
-    results.to_csv(output_folder + "/{}_results.csv".format(config["target"]))
+    results.to_csv(output_folder + "/{}_Leon_MC_results.csv".format(config["target"]))
 
 # Main function call
 if __name__ == "__main__":
 
     input_db = "/groups/icecube/peter/storage/MoonPointing/data/Sschindler_data_L4/Merged_database/Merged_database.db"
     output_folder = "/groups/icecube/peter/storage/MoonPointing/data/Sschindler_data_L4/Merged_database"
-    model_path = "/groups/icecube/peter/workspace/graphnetmoon/graphnet/studies/Moon_Pointing_Analysis/modelling/TrainedModels/TestData/dev_lvl7_robustness_muon_neutrino_0000/dynedge_zenith_all_example/dynedge_zenith_all_example_state_dict.pth"
+    model_path = "/groups/icecube/peter/storage/MoonPointing/Models/Leon_Muon_data_MC/last_one_lvl3MC/dynedge_zenith_Leon_muon_data_MC/dynedge_zenith_Leon_muon_data_MC_state_dict.pth"
 
     main(input_db, output_folder, model_path)
