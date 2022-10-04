@@ -12,8 +12,6 @@ sys.path.append('/groups/icecube/peter/workspace/External_functions')
 from Troels_external_functions import Chi2Regression
 from Troels_external_functions import nice_string_output, add_text_to_ax   # Useful functions to print fit results on figure
 
-
-
 bin_number = 500
 
 azimuth_db = "/groups/icecube/peter/storage/MoonPointing/data/Sschindler_data_L4/Trained_Models/dynedge_azimuth_all_example/results.csv"
