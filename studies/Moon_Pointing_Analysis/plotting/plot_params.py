@@ -8,9 +8,11 @@ LEGEND_SIZE = 15
 DOT_SIZE = 24
 
 # plot size based on subplots
+#plt.rcParams["figure.figsize"] = [7.50, 3.50]
+#plt.rcParams["figure.autolayout"] = True
 single = (12,9)
-double = (12,4)
-triple = ()
+double = (12,5)
+triple = (12,3)
 
 # ylim buffer
 size = 0.02
