@@ -2,6 +2,7 @@
 
 import logging
 import os
+import argparse
 
 from graphnet.utilities.logging import get_logger
 
@@ -15,14 +16,22 @@ from graphnet.data.sqlite.sqlite_dataconverter import SQLiteDataConverter
 
 logger = get_logger(level=logging.DEBUG)
 
+parser = argparse.ArgumentParser(description='processing i3 files to sqlite3 databases')
+parser.add_argument('--db', dest='path_to_db', type=str, help='path to database [str]')
+parser.add_argument('--pulse', dest='pulsemap', type=str, help='path to database [str]')
+parser.add_argument('--gcd', dest='gcd_rescue', default=None, help='sum the integers (default: find the max)')
+parser.add_argument('--out', dest='out')
+
+args = parser.parse_args()
+
 
 def main_icecube86():
     """Main script function."""
     paths = [
-        "/groups/icecube/qgf305/storage/I3_files/Sebastian_MoonL4/"
+        args.path_to_db
     ]
-    pulsemap = "SRTInIcePulses"
-    gcd_rescue = None #"/groups/icecube/qgf305/storage/I3_files/Sebastian_MoonL4/Level2_IC86.2012_data_Run00121480_0101_GCD.i3.gz"
+    pulsemap = args.pulsemap
+    gcd_rescue = args.gcd_rescue
     outdir = "/groups/icecube/qgf305/storage/I3_files/Sebastian_MoonL4/data_out"
 
     converter = SQLiteDataConverter(
