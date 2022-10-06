@@ -4,13 +4,13 @@ from pandas import read_sql
 
 # data pathing
 indir = "/groups/icecube/peter/storage/MoonPointing/data/Sschindler_data_L4/Merged_database/Merged_database.db"
-outdir = "/groups/icecube/qgf305/work/graphnet/studies/Moon_Pointing_Analysis/plotting/event_location/test_plot"
+outdir = "/groups/icecube/qgf305/work/graphnet/studies/Moon_Pointing_Analysis/plotting/event_location/test_plot/"
 
 # dataloading
 with sql.connect(indir) as con:
     query = """
     SELECT
-        charge, dom_time, dom_x, dom_y, dom_z, event_no, pmt_area, rde, width
+        charge, dom_time, dom_x, dom_y, dom_z, event_no
     FROM 
         InIceDSTPulses;
     """
