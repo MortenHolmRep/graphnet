@@ -6,7 +6,7 @@ from icecube import astro
 from icecube.dataclasses import I3Time
 
 # data pathing
-indir = "/data/user/mholm/data/moonL4_segspline_exp13_01_redo_00001.db"
+indir = "/data/user/mholm/data/MoonL4_with_time/moonL4_segspline_exp13_01_redo_merged_with_time.db"
 outdir = "/data/user/mholm/data/MoonL4_with_time/"
 
 def moonDirection(mjd):
@@ -31,7 +31,8 @@ with sql.connect(indir) as con:
         con.execute(create_table)
 
     except:
-        print("failed to create table.")
+        print("failed to create table, exiting.")
+        exit()
 
     # load data
     query = """SELECT event_time FROM InIceDSTPulses;"""
