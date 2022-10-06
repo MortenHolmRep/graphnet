@@ -37,7 +37,7 @@ outdir = "/groups/icecube/qgf305/work/graphnet/studies/Moon_Pointing_Analysis/pl
 #plt.savefig(outdir+"AngleResults.png")
 
 
-db = "/data/user/pa000/MoonPointing/sschindler_data_with_time/Merged_database/moonL4_segspline_exp13_01_redo_merged_with_time.db"
+db = "/groups/icecube/qgf305/storage/databases/moonL4_segspline_exp13_01_redo_with_MoonDirection.db"
 with sql.connect(db) as con:
     query = """
     SELECT
@@ -50,13 +50,13 @@ with sql.connect(db) as con:
 plt.figure()
 plt.hist(sql_data["zenith"], bins = 10)
 plt.yscale('log')
-plt.title("input data: Charge")
+plt.title("Moon zenith location")
 plt.legend()
 plt.savefig(outdir + "moon_zenith.png")
 
 plt.figure()
 plt.hist(sql_data["azimuth"], bins = 10)
 plt.yscale('log')
-plt.title("input data: Charge")
+plt.title("Moon azimuth location")
 plt.legend()
-plt.savefig(outdir + "moon_zenith.png")
+plt.savefig(outdir + "moon_azimuth.png")
