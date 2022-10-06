@@ -44,6 +44,7 @@ def main_icecube86():
         gcd_rescue,
     )
     converter(paths)
+    converter.merge_files()
 
 
 def main_icecube_upgrade():
