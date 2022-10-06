@@ -18,12 +18,12 @@ zenith = zenith_db.zenith_pred
 zenith_std = 1/np.sqrt(zenith_db.zenith_kappa_pred)
 #zenith[zenith>np.pi/2] = np.pi-zenith[zenith>np.pi/2] 
 
-good_selection_mask = np.array(zenith_std<1)*np.array(azimuth_std<1)#np.array(zenith> 0.1)*np.array(zenith_std<1)*np.array(azimuth_std<1)
+good_selection_mask = np.array(zenith> 0.001)*np.array(zenith_std<1)*np.array(azimuth_std<1)#np.array(zenith> 0.1)*np.array(zenith_std<1)*np.array(azimuth_std<1)
 bad_selection_mask = np.logical_not(good_selection_mask)
 
 plot_first = len(zenith)
 
-to_angles = False
+to_angles = True
 if to_angles == True:
     zenith = zenith*180/np.pi
     azimuth = azimuth*180/np.pi
