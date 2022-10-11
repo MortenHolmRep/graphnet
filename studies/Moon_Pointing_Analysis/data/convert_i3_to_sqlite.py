@@ -18,9 +18,9 @@ logger = get_logger(level=logging.DEBUG)
 
 parser = argparse.ArgumentParser(description='processing i3 files to sqlite3 databases')
 parser.add_argument('--db', dest='path_to_db', type=str, help='path to database [str]')
-parser.add_argument('--pulse', dest='pulsemap', type=str, help='path to database [str]')
-parser.add_argument('--gcd', dest='gcd_rescue', default=None, help='sum the integers (default: find the max)')
-parser.add_argument('--out', dest='out')
+parser.add_argument('--pulse', dest='pulsemap', type=str, help='pulsemap type contained in the i3 file [str].')
+parser.add_argument('--gcd', dest='gcd_rescue', default=None, help="define the gcd path, default is 'None'; if set to 'None' it will attempt to find gcd within the file")
+parser.add_argument('--outdir', dest='out', type=str, help='define the output path [str]')
 
 args = parser.parse_args()
 
@@ -32,7 +32,7 @@ def main_icecube86():
     ]
     pulsemap = args.pulsemap
     gcd_rescue = args.gcd_rescue
-    outdir = "/groups/icecube/qgf305/storage/I3_files/Sebastian_MoonL4/data_out"
+    outdir = args.out
 
     converter = SQLiteDataConverter(
         [
@@ -44,7 +44,7 @@ def main_icecube86():
         gcd_rescue,
     )
     converter(paths)
-    converter.merge_files()
+    converter.merge_files(args.out + "Level2_nugen_numu_IC86.2012.011069.db")
 
 
 def main_icecube_upgrade():
