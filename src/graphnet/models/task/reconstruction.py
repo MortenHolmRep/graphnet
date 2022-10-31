@@ -4,6 +4,7 @@ from graphnet.models.config import save_config
 
 from graphnet.models.task import Task
 from graphnet.utilities.maths import eps_like
+from torch.nn.functional import softmax
 
 
 class AzimuthReconstructionWithKappa(Task):
@@ -170,21 +171,14 @@ class TimeReconstruction(Task):
 
 
 class MulticlassClassificationTask(Task):
-    # Requires the same number of features as the number of classes being predicted
-    @property
-    def nb_inputs(self):
-        return self._nb_inputs
-
-    @save_config
-    def __init__(self, nb_inputs, *args, **kwargs):
-        self._nb_inputs = nb_inputs
-        self._softmax = torch.nn.Softmax()
-        super().__init__(self, *args, **kwargs)
+    # requires three features: probability of being noise, muon or neutrino.
+    nb_inputs = 3
 
     def _forward(self, x):
-        # Transform latent features into probabilities.
-        return self._softmax(x)
+        # transform probability of being noise, muon or neutrino
+        return softmax(x)
 
+torch
 
 class BinaryClassificationTask(Task):
     # requires one feature: probability of being neutrino?

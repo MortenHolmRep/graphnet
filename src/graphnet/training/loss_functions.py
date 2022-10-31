@@ -126,7 +126,8 @@ class CrossEntropyLoss(LossFunction):
 
     def _forward(self, prediction: Tensor, target: Tensor) -> Tensor:
         device = prediction.device
-        target_new = one_hot(target).to(device)
+        pid_transform = {1:0,12:2,13:1,14:2,16:2}
+        target_new = one_hot(torch.tensor([pid_transform[np.abs(int(value))] for value in target]), 3).to(device)
         return cross_entropy(
             prediction.float(), target_new.float(), reduction="none"
         )
