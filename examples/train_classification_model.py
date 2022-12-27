@@ -5,6 +5,7 @@ from typing import Dict, Any
 
 from pytorch_lightning.callbacks import EarlyStopping
 from pytorch_lightning.loggers import WandbLogger
+import wandb
 
 from graphnet.data.dataloader import DataLoader
 from graphnet.models import Model
@@ -26,6 +27,8 @@ wandb_logger = WandbLogger(
     save_dir=WANDB_DIR,
     log_model=True,
 )
+
+wandb_logger.log_metrics()
 
 
 def train(general_config: Dict[str, Any]) -> None:
