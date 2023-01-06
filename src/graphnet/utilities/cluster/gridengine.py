@@ -10,6 +10,8 @@ import os
 import collections
 from math import floor
 
+from graphnet.utilities.cluster.filesys_tools import make_dir
+
 
 GRIDENGINE_SUBMIT_EXE = "qsub"
 GRIDENGINE_SCRIPT_DIRECTIVE = "#$"
@@ -141,8 +143,6 @@ def create_gridengine_submit_file(  # type: ignore
 
 # TEST
 if __name__ == "__main__":
-
-    from graphnet.utilities.cluster.filesys_tools import make_dir
 
     test_dir = "./tmp/gridengine"
     make_dir(test_dir)  # type: ignore

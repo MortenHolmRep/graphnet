@@ -27,7 +27,7 @@ with ClusterSubmitter(  # type: ignore
     start_up_commands=[
         os.path.join(
             "source ",
-            os.path.expanduser("$HOME/anaconda3/etc/profile.d/conda.sh"),
+            os.path.expanduser("$HOME/miniconda3/etc/profile.d/conda.sh"),
         )
     ],
 ) as submitter:  # type: ignore
