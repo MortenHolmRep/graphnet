@@ -134,9 +134,18 @@ docs/**/*.rst
 
 # Badges
 assets/badges
+
+# Logs
 lightning_logs/
+logs/
 wandb/
+checkpoints/
+
+# Data and outputs
+test_data/output/
 **.png
 **.pth
+**.db
+
+# Notebooks
 **.ipynb
-.vscode/settings.json

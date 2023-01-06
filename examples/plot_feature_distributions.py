@@ -1,30 +1,37 @@
+"""Example of plotting feature distributions from SQLite database."""
+
 import matplotlib.pyplot as plt
 import numpy as np
 from tqdm import tqdm
 
 from graphnet.data.constants import FEATURES, TRUTH
-from graphnet.data.utils import get_equal_proportion_neutrino_indices
+from graphnet.data.sqlite.sqlite_selection import (
+    get_equal_proportion_neutrino_indices,
+)
 from graphnet.models.detector.icecube import IceCubeUpgrade, IceCubeUpgrade_V2
 from graphnet.models.graph_builders import KNNGraphBuilder
-from graphnet.models.training.utils import make_train_validation_dataloader
+from graphnet.training.utils import make_train_validation_dataloader
+from graphnet.utilities.logging import get_logger
 
+
+logger = get_logger()
 
 # Constants
 features = FEATURES.UPGRADE
 truth = TRUTH.UPGRADE
 
 
-# Main function definition
-def main():
-
+def main() -> None:
+    """Run example."""
+    # Remove `interaction_time` if it exists
     try:
         del truth[truth.index("interaction_time")]
     except ValueError:
         # not found in list
         pass
 
-    print(f"features: {features}")
-    print(f"truth: {truth}")
+    logger.info(f"features: {features}")
+    logger.info(f"truth: {truth}")
 
     # Configuration
     db = "/groups/icecube/asogaard/data/sqlite/dev_upgrade_step4_preselection_decemberv2/data/dev_upgrade_step4_preselection_decemberv2.db"
@@ -59,17 +66,17 @@ def main():
     )
 
     # Get feature matrix
-    x_original = []
-    x_preprocessed = []
+    x_original_list = []
+    x_preprocessed_list = []
     for batch in tqdm(training_dataloader):
-        x_original.append(batch.x.numpy())
-        x_preprocessed.append(detector(batch).x.numpy())
+        x_original_list.append(batch.x.numpy())
+        x_preprocessed_list.append(detector(batch).x.numpy())
 
-    x_original = np.concatenate(x_original, axis=0)
-    x_preprocessed = np.concatenate(x_preprocessed, axis=0)
+    x_original = np.concatenate(x_original_list, axis=0)
+    x_preprocessed = np.concatenate(x_preprocessed_list, axis=0)
 
-    print("Number of NaNs:", np.sum(np.isnan(x_original)))
-    print("Number of infs:", np.sum(np.isinf(x_original)))
+    logger.info("Number of NaNs:", np.sum(np.isnan(x_original)))
+    logger.info("Number of infs:", np.sum(np.isinf(x_original)))
 
     # Plot feature distributions
     nb_features_original = x_original.shape[1]
@@ -107,6 +114,5 @@ def main():
     fig.savefig("feature_distribution_preprocessed.png")
 
 
-# Main function call
 if __name__ == "__main__":
     main()
