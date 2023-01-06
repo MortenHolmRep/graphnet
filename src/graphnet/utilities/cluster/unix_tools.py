@@ -1,6 +1,4 @@
-"""
-Tom Stuttard
-"""
+"""Tom Stuttard."""
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
@@ -9,10 +7,10 @@ from __future__ import unicode_literals
 # Unix specific-tools
 # Tom Stuttard
 
-from future import standard_library
-
-standard_library.install_aliases()
 import os
+
+# from future import standard_library
+# standard_library.install_aliases()
 
 
 #
@@ -28,7 +26,8 @@ BASH_SHEBANG = "#!/usr/bin/env bash"
 
 # tail
 # Stolen from http://stackoverflow.com/questions/136168/get-last-n-lines-of-a-file-with-python-similar-to-tail
-def tail(filePath, numLines):
+def tail(filePath, numLines):  # type: ignore
+    """test."""
     if os.path.exists(filePath):
         stdin, stdout = os.popen2("tail -n %i %s " % (numLines, filePath))
         stdin.close()
@@ -41,8 +40,11 @@ def tail(filePath, numLines):
 
 # which
 # Stolen from: https://stackoverflow.com/questions/377017/test-if-executable-exists-in-python
-def which(program):
-    def is_exe(fpath):
+def which(program):  # type: ignore
+    """test."""
+
+    def is_exe(fpath):  # type: ignore
+        """test."""
         return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
 
     fpath, fname = os.path.split(program)

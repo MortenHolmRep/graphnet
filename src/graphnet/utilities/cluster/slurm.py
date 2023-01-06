@@ -1,19 +1,8 @@
-"""
-Tools for submitting to a cluster via the SLURM system.
-Also supports PBS, which is similar.
+"""test."""
 
-These tools are generic to any SLURM/PBS system, e.g. do not assume IceCube or any particular cluster.
-
-These can be used standalone, or by the more sophisticated job management system
-defined in `cluster.py` and `job.py`.
-
-This is a useful huide for SLURM vs PBS:
-https://confluence.csiro.au/display/SC/Reference+Guide%3A+Migrating+from+Torque+to+SLURM
-
-Tom Stuttard
-"""
-
-import os, math, collections
+import os
+import math
+import collections
 from shutil import copy2
 
 
@@ -33,33 +22,24 @@ PBS_SCRIPT_DIRECTIVE = "$PBS"
 #
 
 
-def create_slurm_submit_file(
-    job_dir,
-    job_name,
-    exe_commands,
-    memory,
-    wall_time_hours=None,
-    partition=None,
-    mail_type=None,
-    mail_user=None,
-    num_gpus=0,
-    use_array=False,
-    export_env=True,
-    out_file=None,
-    err_file=None,
-    working_dir=None,
-    pbs=False,
-):
-    """
-    Create a SLURM/PBS submit file
-    """
-
-    # TODO Not sure this handles running WITHOUT job arrays right now, investigate
-
-    #
-    # Handle inputs
-    #
-
+def create_slurm_submit_file(  # type: ignore
+    job_dir: str,  # type: ignore
+    job_name: str,  # type: ignore
+    exe_commands,  # type: ignore
+    memory: int,  # type: ignore
+    wall_time_hours: int = None,  # type: ignore
+    partition: str = None,  # type: ignore
+    mail_type: str = None,  # type: ignore
+    mail_user: str = None,  # type: ignore
+    num_gpus: int = 0,  # type: ignore
+    use_array: bool = False,  # type: ignore
+    export_env: bool = True,  # type: ignore
+    out_file: str = None,  # type: ignore
+    err_file: str = None,  # type: ignore
+    working_dir: str = None,  # type: ignore
+    pbs: bool = False,  # type: ignore
+):  # type: ignore
+    """Create a SLURM/PBS submit file."""
     # Check got some exectiable commands
     assert isinstance(
         exe_commands, collections.Sequence
@@ -70,6 +50,9 @@ def create_slurm_submit_file(
             "No executable commands provided, cannot created SLURM submit file"
         )
 
+    # Toggle SLURM vs PBS
+    script_directive = PBS_SCRIPT_DIRECTIVE if pbs else SLURM_SCRIPT_DIRECTIVE
+
     # Check output dir exists
     job_dir = os.path.expandvars(os.path.expanduser(job_dir))
     job_dir = os.path.abspath(job_dir)
@@ -79,23 +62,11 @@ def create_slurm_submit_file(
             % job_dir
         )
 
-    # Toggle SLURM vs PBS
-    script_directive = PBS_SCRIPT_DIRECTIVE if pbs else SLURM_SCRIPT_DIRECTIVE
-
-    #
-    # Write the submit file
-    #
-
     # Define a name for the submit file we are about to generate
     submit_file_path = os.path.join(job_dir, job_name + ".slurm")
 
     # Make file
     with open(submit_file_path, "w") as submit_file:
-
-        #
-        # File header
-        #
-
         # Use bash
         submit_file.write("#!/bin/bash\n")
 
@@ -108,54 +79,26 @@ def create_slurm_submit_file(
 
         submit_file.write("\n")
 
-        #
-        # Configure submission
-        #
-
         # Define job name
-        if pbs:
-            submit_file.write("%s -N %s\n" % (script_directive, job_name))
-        else:
-            submit_file.write(
-                "%s --job-name=%s\n" % (script_directive, job_name)
-            )
+        define_job_name(job_name, pbs, script_directive, submit_file)  # type: ignore
 
         # Define paths for log files
         # Format depends on whether this with be run as a single job or as part of a job array
-        output_file_stem = "job_" + ("%08a__%A" if use_array else "__%j")
-        log_file_stem = os.path.join(job_dir, output_file_stem)
-        if out_file is None:
-            out_file = log_file_stem + ".out"
-        if pbs:
-            submit_file.write("%s -o %s\n" % (script_directive, out_file))
-        else:
-            submit_file.write(
-                "%s --output=%s\n" % (script_directive, out_file)
-            )
-        if err_file is None:
-            err_file = log_file_stem + ".err"
-        if pbs:
-            submit_file.write("%s -e %s\n" % (script_directive, out_file))
-        else:
-            submit_file.write("%s --error=%s\n" % (script_directive, err_file))
+        define_paths_for_log_files(  # type: ignore
+            job_dir,
+            use_array,
+            out_file,
+            err_file,
+            pbs,
+            script_directive,
+            submit_file,
+        )  # type: ignore
 
         # Define partition
-        if partition is not None:
-            if pbs:
-                submit_file.write("%s -q %s\n" % (script_directive, partition))
-            else:
-                submit_file.write(
-                    "%s --partition=%s\n" % (script_directive, partition)
-                )
+        define_partition(partition, pbs, script_directive, submit_file)  # type: ignore
 
         # Define mail
-        if (mail_type is not None) and (mail_user is not None):
-            submit_file.write(
-                "%s --mail-type %s\n" % (script_directive, mail_type)
-            )
-            submit_file.write(
-                "%s --mail-user %s\n" % (script_directive, mail_user)
-            )
+        define_mail(mail_type, mail_user, script_directive, submit_file)  # type: ignore
 
         # Define number of tasks
         if pbs:
@@ -168,21 +111,10 @@ def create_slurm_submit_file(
             )  # TODO Add argument
 
         # Define num GPUs
-        if num_gpus > 0:
-            if pbs:
-                submit_file.write(
-                    "%s -l gpus=%i\n" % (script_directive, num_gpus)
-                )
-            else:
-                submit_file.write(
-                    "%s --gres=gpu:%i\n" % (script_directive, num_gpus)
-                )
+        define_number_of_gpus(num_gpus, pbs, script_directive, submit_file)  # type: ignore
 
         # Define memory request
-        if pbs:
-            submit_file.write("%s -l vmem=%i\n" % (script_directive, memory))
-        else:
-            submit_file.write("%s --mem=%imb\n" % (script_directive, memory))
+        define_memory_request(memory, pbs, script_directive, submit_file)  # type: ignore
 
         # Define wall time
         if wall_time_hours is not None:
@@ -213,10 +145,6 @@ def create_slurm_submit_file(
             )
 
         submit_file.write("\n")
-
-        #
-        # Launch processes
-        #
 
         # Report a few basic details
         submit_file.write("echo 'Running on host' $HOSTNAME 'at' `date`\n")
@@ -254,18 +182,81 @@ def create_slurm_submit_file(
         submit_file.write("echo " "\n")
         submit_file.write("\n")
 
-    #
-    # Done
-    #
-
     print(("SLURM submit file written : %s" % (submit_file_path)))
     return submit_file_path
 
 
-def create_pbs_submit_file(**kw):
-    """
-    Alias to create a PBS submit file
-    """
+def define_memory_request(memory, pbs, script_directive, submit_file):  # type: ignore
+    """test."""
+    if pbs:
+        submit_file.write("%s -l vmem=%i\n" % (script_directive, memory))
+    else:
+        submit_file.write("%s --mem=%imb\n" % (script_directive, memory))
+
+
+def define_number_of_gpus(num_gpus, pbs, script_directive, submit_file):  # type: ignore
+    """test."""
+    if num_gpus > 0:
+        if pbs:
+            submit_file.write("%s -l gpus=%i\n" % (script_directive, num_gpus))
+        else:
+            submit_file.write(
+                "%s --gres=gpu:%i\n" % (script_directive, num_gpus)
+            )
+
+
+def define_mail(mail_type, mail_user, script_directive, submit_file):  # type: ignore
+    """test."""
+    if (mail_type is not None) and (mail_user is not None):
+        submit_file.write(
+            "%s --mail-type %s\n" % (script_directive, mail_type)
+        )
+        submit_file.write(
+            "%s --mail-user %s\n" % (script_directive, mail_user)
+        )
+
+
+def define_partition(partition, pbs, script_directive, submit_file):  # type: ignore
+    """test."""
+    if partition is not None:
+        if pbs:
+            submit_file.write("%s -q %s\n" % (script_directive, partition))
+        else:
+            submit_file.write(
+                "%s --partition=%s\n" % (script_directive, partition)
+            )
+
+
+def define_paths_for_log_files(  # type: ignore
+    job_dir, use_array, out_file, err_file, pbs, script_directive, submit_file
+):  # type: ignore
+    """test."""
+    output_file_stem = "job_" + ("%08a__%A" if use_array else "__%j")
+    log_file_stem = os.path.join(job_dir, output_file_stem)
+    if out_file is None:
+        out_file = log_file_stem + ".out"
+    if pbs:
+        submit_file.write("%s -o %s\n" % (script_directive, out_file))
+    else:
+        submit_file.write("%s --output=%s\n" % (script_directive, out_file))
+    if err_file is None:
+        err_file = log_file_stem + ".err"
+    if pbs:
+        submit_file.write("%s -e %s\n" % (script_directive, out_file))
+    else:
+        submit_file.write("%s --error=%s\n" % (script_directive, err_file))
+
+
+def define_job_name(job_name, pbs, script_directive, submit_file):  # type: ignore
+    """test."""
+    if pbs:
+        submit_file.write("%s -N %s\n" % (script_directive, job_name))
+    else:
+        submit_file.write("%s --job-name=%s\n" % (script_directive, job_name))
+
+
+def create_pbs_submit_file(**kw):  # type: ignore
+    """Alias to create a PBS submit file."""
     return create_slurm_submit_file(pbs=True, **kw)
 
 
@@ -275,10 +266,10 @@ def create_pbs_submit_file(**kw):
 
 if __name__ == "__main__":
 
-    from graphnet.utils.cluster.filesys_tools import make_dir
+    from graphnet.utilities.cluster.filesys_tools import make_dir
 
     test_dir = "./tmp/slurm"
-    make_dir(test_dir)
+    make_dir(test_dir)  # type: ignore
 
     exe_commands = [
         "echo 'bar'",
@@ -292,4 +283,4 @@ if __name__ == "__main__":
         exe_commands=exe_commands,
         memory=1000,
         pbs=False,
-    )
+    )  # type: ignore

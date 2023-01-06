@@ -1,14 +1,16 @@
-"""
-Script to define and run a cluster job, using JSON steering files to define what to run, 
-store metrics, allow job to be partily or totally re-run, etc.
+"""test."""
 
-Note that this script should not depend on anything else in the fridge repo, e.g.
-it should be able to run on clusters where the fridge is not installed. 
-
-Tom Stuttard
-"""
-
-import os, socket, subprocess, datetime, json, math, collections, sys, numbers, codecs, stat
+import os
+import socket
+import subprocess
+import datetime
+import json
+import math
+import collections
+import sys
+import numbers
+import codecs
+import stat
 
 #
 # Globals
@@ -40,17 +42,15 @@ STATUS_COLORS = collections.OrderedDict(
 
 
 class ClusterCommand(object):
-    """
-    Class defining a command to run
-    """
+    """Class defining a command to run."""
 
-    def __init__(
+    def __init__(  # type: ignore
         self,
         command,
         description=None,
         allowed_return_status=DEFAULT_ALLOWED_RETURN_STATUS,
-    ):
-
+    ):  # type: ignore
+        """test."""
         # Store args
         # assert isinstance(command, str), "`command` must be a string"
         self.command = command
@@ -77,7 +77,8 @@ class ClusterCommand(object):
         self.status = "not_started"  # THe status as recorded by this code
         self.return_status = None  # The status returned by the command
 
-    def to_dict(self):
+    def to_dict(self):  # type: ignore
+        """test."""
         # TODO Could I use the native __dict__ method instead?
         return collections.OrderedDict(
             command=self.command,
@@ -91,13 +92,10 @@ class ClusterCommand(object):
 
 
 class ClusterJob(object):
-    """
-    Class defining a cluster job, which itself will be a number of commands
-    Include function to generate a python scrip to run all the commands in the job
-    """
+    """test."""
 
-    def __init__(self, job_index, commands, description=None, env_vars=None):
-
+    def __init__(self, job_index, commands, description=None, env_vars=None):  # type: ignore
+        """test."""
         # Store args
         self.index = job_index
         self.description = (
@@ -119,7 +117,8 @@ class ClusterJob(object):
         for c in self.commands:
             assert isinstance(c, ClusterCommand)
 
-    def to_dict(self):
+    def to_dict(self):  # type: ignore
+        """test."""
         # TODO Could I use the native __dict__ method instead?
         return collections.OrderedDict(
             index=self.index,
@@ -131,8 +130,8 @@ class ClusterJob(object):
             status=self.status,
         )
 
-    def create_steering_file(self, output_dir, overwrite=False):
-
+    def create_steering_file(self, output_dir, overwrite=False):  # type: ignore
+        """test."""
         # Make directories if required
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
@@ -157,37 +156,19 @@ class ClusterJob(object):
 
     # TODO also load_from_steering_file
 
-    def prepare_to_submit(
+    def prepare_to_submit(  # type: ignore
         self,
         job_dir,
         env_shell=None,
         start_up_commands=None,
         tear_down_commands=None,
         job_mode=None,
-    ):
-        """
-        Creates the payload to submit.
-
-        This includes the steering file, setting paths to logging files, and the
-        final execitable containing both this job command itself + any start-up/
-        tear-down, the env-shell, etc.
-
-        Modes:
-            "wrapper" - creates a heavy wrapper with lots of robustness, logging, etc - recommended
-            "lite_wrapper" - creates a lite wrapper with some useful stuff but crucially no fridge dependence (required on grid)
-            "no_wrapper" - no wrapping whatsoever, just the command
-
-
-        Also features a `lite_mode` where JSON steering files are not used,
-        which can be useful for running clusters without shared file systems.
-        """
-
+    ):  # type: ignore
+        """test."""
         # TODO store variable in json?
-
         #
         # Check inputs
         #
-
         # Check job mode
         if job_mode is None:
             job_mode = "wrapper"
@@ -204,11 +185,9 @@ class ClusterJob(object):
 
         # Not all behaviour is supported by "no_wrapper"
         # TODO
-
         #
         # Create a bunch of steering stuff
         #
-
         # Create a job name string (unique to this job)
         self.name = JOB_DIR_FMT % self.index
 
@@ -357,16 +336,8 @@ class ClusterJob(object):
         # Return the directory
         return self.dir
 
-    def get_slurm_paths(self):
-        """
-        Update paths to use SLURM array variables
-        Allows the paths to be used by SLURM array submissions
-
-        Using SLURM_ARRAY_TASK_ID and %a respectively instead of an actual number,
-        depending on whether used by a shell or #SBATCH statement
-        (see https://slurm.schedmd.com/job_array.html)
-        """
-
+    def get_slurm_paths(self):  # type: ignore
+        """test."""
         job_name_shell = self.name.replace(
             str(self.index), "${SLURM_ARRAY_TASK_ID}"
         )
@@ -386,7 +357,8 @@ class ClusterJob(object):
 #
 
 
-def update_json(file_location, data):
+def update_json(file_location, data):  # type: ignore
+    """test."""
     # TODO Link to stack overflow location
     # TODO Maybe a generic location?
     assert os.path.isfile(file_location), (
@@ -400,7 +372,7 @@ def update_json(file_location, data):
         for key in data:
             # make modifications here
             assert key in json_from_file, (
-                "'%s' does not exist in JSON file" % key
+                "'%s' does not exist in JSON file." % key
             )
             json_from_file[key] = data[key]
         # rewind to top of the file
@@ -411,7 +383,8 @@ def update_json(file_location, data):
         json_file.truncate()
 
 
-def read_job_steering_key(steering_file_path, key):
+def read_job_steering_key(steering_file_path, key):  # type: ignore
+    """test."""
     assert os.path.isfile(steering_file_path), (
         "Steering file does not exist : %s" % steering_file_path
     )
@@ -420,16 +393,18 @@ def read_job_steering_key(steering_file_path, key):
             steering_file
         )  # , object_pairs_hook=collections.OrderedDict)
         assert key in steering_data, (
-            "'%s' does not exist in steering file" % key
+            "'%s' does not exist in steering file." % key
         )
         return steering_data[key]
 
 
-def write_job_steering_key(steering_file_path, key, value):
+def write_job_steering_key(steering_file_path, key, value):  # type: ignore
+    """test."""
     update_json(steering_file_path, {key: value})
 
 
-def read_command_steering_key(steering_file_path, command_index, key):
+def read_command_steering_key(steering_file_path, command_index, key):  # type: ignore
+    """test."""
     commands = read_job_steering_key(steering_file_path, "commands")
     assert command_index < len(
         commands
@@ -445,7 +420,8 @@ def read_command_steering_key(steering_file_path, command_index, key):
     return command[key]
 
 
-def write_command_steering_key(steering_file_path, command_index, key, value):
+def write_command_steering_key(steering_file_path, command_index, key, value):  # type: ignore
+    """test."""
     commands = read_job_steering_key(steering_file_path, "commands")
     assert command_index < len(
         commands
@@ -467,18 +443,13 @@ def write_command_steering_key(steering_file_path, command_index, key, value):
 #
 
 
-def run_job(steering_file, re_run=False):
-    """
-    Main function for running a job defined in a steering file
-    """
-
+def run_job(steering_file, re_run=False):  # type: ignore
+    """test."""
     # TODO Force stderr to stdout ???
     # TODO Record end time for failed commands too so can see how much time was wasted (need to therefore record a success flag too)
-
     #
     # Start up
     #
-
     print("")
     print("")
     print("==================================================================")
@@ -743,8 +714,8 @@ def run_job(steering_file, re_run=False):
 #
 
 
-def test():
-
+def test():  # type: ignore
+    """test."""
     test_dir = "./tmp"
     if not os.path.exists(test_dir):
         os.makedirs(test_dir)
@@ -784,4 +755,4 @@ if __name__ == "__main__":
     parser.add_argument("-r", "--re-run", action="store_true")
     args = parser.parse_args()
 
-    run_job(args.steering_file, args.re_run)
+    run_job(args.steering_file, args.re_run)  # type: ignore

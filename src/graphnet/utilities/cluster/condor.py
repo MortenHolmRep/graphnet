@@ -1,14 +1,4 @@
-"""
-Tools for submitting to a cluster via the condor system.
-Also supports DAGMan.
-
-These tools are generic to any condor system, e.g. do not assume IceCube, NPX, etc.
-
-These can be used standalone, or by the more sophisticated job management system 
-defined in `cluster.py` and `job.py`.
-
-Tom Stuttard
-"""
+"""test."""
 from __future__ import print_function
 from __future__ import absolute_import
 from __future__ import division
@@ -18,16 +8,18 @@ from builtins import open
 from builtins import int
 from builtins import str
 from builtins import object
+import json
+import datetime
 from future import standard_library
 
+import os
+
+from graphnet.utilities.cluster.filesys_tools import make_dir, is_executable
+from graphnet.utilities.cluster.unix_tools import tail
+
+from graphnet.utilities.cluster.job import JOB_INDEX_FMT, JOB_NAME_FMT
+
 standard_library.install_aliases()
-import os, collections
-from shutil import copy2
-
-from graphnet.utils.cluster.filesys_tools import make_dir, is_executable
-from graphnet.utils.cluster.unix_tools import which, tail
-
-from graphnet.utils.cluster.job import JOB_INDEX_FMT, JOB_NAME_FMT
 
 #
 # Globals
@@ -36,40 +28,33 @@ from graphnet.utils.cluster.job import JOB_INDEX_FMT, JOB_NAME_FMT
 CONDOR_SUBMIT_EXE = "condor_submit_dag"
 
 
-#
-# Submission
-#
-
-# TODO These are now coupled to job.py. Iddeally make this generic and all the job.py stuff be contained in cluster.py so that this can be used standalone
-# TODO Oeiginals are preserved below
+def percentage(numerator, denominator):  # type: ignore
+    """test."""
+    return 100.0 * numerator // denominator
 
 
-def percentage(numerator, denominator):
-    return 100.0 * fraction(numerator, denominator)
-
-
-def create_condor_submit_file(
-    file_path,
-    memory_MB=1000,
-    disk_space_MB=1000,
-    num_cpus=1,
-    num_gpus=0,
-    export_env=False,
-    require_cvmfs=False,
-    require_avx=False,
-    require_cuda=False,
-    require_sl7=False,  # Scientific Linux 7 (+ variants)
+def create_condor_submit_file(  # type: ignore
+    file_path: str,
+    memory_MB: int = 1000,
+    disk_space_MB: int = 1000,
+    num_cpus: int = 1,
+    num_gpus: int = 0,
+    export_env: bool = False,
+    require_cvmfs: bool = False,
+    require_avx: bool = False,
+    require_cuda: bool = False,
+    require_sl7: bool = False,  # Scientific Linux 7 (+ variants)
     choose_sites=None,
     exclude_sites=None,
-    user_proxy=False,
+    user_proxy: bool = False,
     wall_time_hr=None,
     accounting_group=None,
-):
-    """
-    Create a condor submit file.
-    Assumes it will be run as a DAG, using a DAGMan scriped generated using `create_dagman_submit_file` (below).
-    """
+):  # type: ignore
+    """Create a condor submit file.
 
+    Assumes it will be run as a DAG, using a DAGMan scriped generated using
+    `create_dagman_submit_file` (below).
+    """
     # TODO Make this more configurable
     # TODO Maybe make it part of the dagman function since it is so tightly coupled
 
@@ -85,7 +70,7 @@ def create_condor_submit_file(
 
     # Check parent directory exists
     base_dir = os.path.dirname(file_path)
-    make_dir(base_dir)
+    make_dir(base_dir)  # type: ignore
 
     # Make file
     with open(file_path, "w") as submit_file:
@@ -171,7 +156,7 @@ def create_condor_submit_file(
                 + (
                     " && ".join(
                         [
-                            '(GLIDEIN_Site =!= "%s")' % site
+                            '(GLIDEIN_Site =is not "%s")' % site
                             for site in exclude_sites
                         ]
                     )
@@ -209,15 +194,15 @@ def create_condor_submit_file(
 
 
 # Create a DAGMan submit file
-def create_dagman_submit_file(
+def create_dagman_submit_file(  # type: ignore
     submit_dir,
     log_dir,
     dagman_file_name,
     condor_file_name,
     jobs,
     **submit_file_kw,
-):
-
+):  # type: ignore
+    """test."""
     # TODO Remove dependence on job.py (instead make this generic and put the job.py dependence in cluster.py)
 
     #
@@ -245,7 +230,7 @@ def create_dagman_submit_file(
     #
 
     # Create the submit file this DAGMan file will use
-    create_condor_submit_file(condor_file_path, **submit_file_kw)
+    create_condor_submit_file(condor_file_path, **submit_file_kw)  # type: ignore
 
     # Make file
     with open(dagman_file_path, "w") as dagman_file:
@@ -310,7 +295,8 @@ def create_dagman_submit_file(
 #
 
 # Interpret the DAG status codes (from https://research.cs.wisc.edu/htcondor/manual/latest/2_10DAGMan_Applications.html)
-def interpret_dag_status(dag_status):
+def interpret_dag_status(dag_status):  # type: ignore
+    """test."""
     if dag_status == 0:
         return "OK"
     elif dag_status == 1:
@@ -331,44 +317,51 @@ def interpret_dag_status(dag_status):
 
 # Class for storing DAGMan jobs bunch metrics from the metrics file json node
 class DAGManMetrics(object):
+    """test."""
 
     # Members of DAGManMetrics main class
-    def __init__(self, date=None):
+    def __init__(self, date=None):  # type: ignore
+        """test."""
         self.date = date
         self.submit_fileInfo = None
         self.outputFileInfo = None
         self.metricsFileInfo = None
         self.jobsMetrics = list()  # TOOD OrderedDict with num?
 
-    def parseSubmitFile(self, dagmanSubmitFilePath):
+    def parseSubmitFile(self, dagmanSubmitFilePath):  # type: ignore
+        """test."""
         self.submit_fileInfo = DAGManMetricsSubmitFileInfo(
             dagmanSubmitFilePath
         )
 
-    def parseOutputFile(self, dagmanOutputFilePath):
+    def parseOutputFile(self, dagmanOutputFilePath):  # type: ignore
+        """test."""
         self.outputFileInfo = DAGManMetricsOutputFileInfo(dagmanOutputFilePath)
 
-    def parseMetricsFile(self, metricsJsonFilePath):
+    def parseMetricsFile(self, metricsJsonFilePath):  # type: ignore
+        """test."""
         self.metricsFileInfo = DAGManMetricsMetricsFileInfo(
             metricsJsonFilePath
         )
 
-    def fullyParsed(self):
+    def fullyParsed(self):  # type: ignore
+        """test."""
         return (
-            self.submit_fileInfo != None
+            self.submit_fileInfo is not None
             and self.submit_fileInfo.fullyParsed()
-            and self.outputFileInfo != None
+            and self.outputFileInfo is not None
             and self.outputFileInfo.fullyParsed()
-            and self.metricsFileInfo != None
+            and self.metricsFileInfo is not None
             and self.metricsFileInfo.fullyParsed()
         )
 
-    def __str__(self):
+    def __str__(self):  # type: ignore
+        """test."""
         returnString = "DAGMan submission :\n"
-        if self.date != None:
+        if self.date is not None:
             returnString += "  Date                  : %s\n" % (self.date)
 
-        if self.submit_fileInfo != None:
+        if self.submit_fileInfo is not None:
             returnString += "  Submit file info :\n"
             returnString += "    Num jobs            : %i\n" % (
                 self.submit_fileInfo.numJobs
@@ -376,17 +369,17 @@ class DAGManMetrics(object):
         else:
             returnString += "  [Submit file not parsed]\n"
 
-        if self.outputFileInfo != None:
+        if self.outputFileInfo is not None:
             returnString += "  Output file info :\n"
             returnString += "    Return code          : %s\n" % (
                 str(self.outputFileInfo.returnCode)
-                if self.outputFileInfo.returnCode != None
+                if self.outputFileInfo.returnCode is not None
                 else "[Not parsed]"
             )
         else:
             returnString += "  [Output file not parsed]\n"
 
-        if self.metricsFileInfo != None:
+        if self.metricsFileInfo is not None:
             returnString += "  Metrics file info :\n"
             returnString += "    Num jobs             : %i\n" % (
                 self.metricsFileInfo.numJobs
@@ -411,12 +404,12 @@ class DAGManMetrics(object):
             returnString += "    End time             : %s\n" % (
                 self.metricsFileInfo.end_time
             )
-            returnString += "    Time taken in total  : %s\n" % (
-                time.human_time(self.metricsFileInfo.duration)
-            )
-            returnString += "    DAG status           : %s\n" % (
-                interpretDAGStatus(self.metricsFileInfo.dag_status)
-            )
+            # returnString += "    Time taken in total  : %s\n" % (
+            #     time.human_time(self.metricsFileInfo.duration)
+            # )
+            # returnString += "    DAG status           : %s\n" % (
+            #     interpretDAGStatus(self.metricsFileInfo.dag_status)
+            # )
         else:
             returnString += "  [Metrics file not parsed]\n"
 
@@ -425,14 +418,18 @@ class DAGManMetrics(object):
 
 # Subclass containing submit file information
 class DAGManMetricsSubmitFileInfo(object):
-    def __init__(self, dagmanSubmitFilePath):
+    """test."""
+
+    def __init__(self, dagmanSubmitFilePath):  # type: ignore
+        """test."""
         self.parse(dagmanSubmitFilePath)
 
-    def fullyParsed(self):
+    def fullyParsed(self):  # type: ignore
+        """test."""
         return True  # No conditional parsing for this file at this time
 
-    def parse(self, dagmanSubmitFilePath):
-
+    def parse(self, dagmanSubmitFilePath):  # type: ignore
+        """test."""
         # Check submit exists, open it, and read it into a string
         if os.path.exists(dagmanSubmitFilePath):
             with open(dagmanSubmitFilePath) as submit_file:
@@ -449,14 +446,18 @@ class DAGManMetricsSubmitFileInfo(object):
 
 # Subclass containing metrics file information
 class DAGManMetricsMetricsFileInfo(object):
-    def __init__(self, metricsJsonFilePath):
+    """test."""
+
+    def __init__(self, metricsJsonFilePath):  # type: ignore
+        """test."""
         self.parse(metricsJsonFilePath)
 
-    def fullyParsed(self):
+    def fullyParsed(self):  # type: ignore
+        """test."""
         return True  # No conditional parsing for this file at this time
 
-    def parse(self, metricsJsonFilePath):
-
+    def parse(self, metricsJsonFilePath):  # type: ignore
+        """test."""
         # Open the JSON metrics file and parse using a json parser
         if os.path.exists(metricsJsonFilePath):
             with open(metricsJsonFilePath) as dagmanMetricsFile:
@@ -488,11 +489,16 @@ class DAGManMetricsMetricsFileInfo(object):
 
 # Subclass containing .out file information
 class DAGManMetricsOutputFileInfo(object):
-    def __init__(self, dagmanOutputFilePath):
+    """test."""
+
+    def __init__(self, dagmanOutputFilePath):  # type: ignore
+        """test."""
         self.returnCode = None
         self.parse(dagmanOutputFilePath)
 
-    def parse(self, dagmanOutputFilePath):  # TODO parse more of this file
+    def parse(self, dagmanOutputFilePath):  # type: ignore
+        """test."""
+        # TODO parse more of this file
 
         # Check submit exists, open it, and read it into a string
         if os.path.exists(dagmanOutputFilePath):
@@ -503,13 +509,14 @@ class DAGManMetricsOutputFileInfo(object):
         else:
             raise Exception(
                 'DAGMan .out file "%s" does not exist' % dagmanOutputFilePath
-            )
+            )  # type: ignore
 
-    def fullyParsed(self):
-        return self.returnCode != None
+    def fullyParsed(self):  # type: ignore
+        """test."""
+        return self.returnCode is not None
 
-    def getReturnCode(self, dagmanOutputFilePath):
-
+    def getReturnCode(self, dagmanOutputFilePath):  # type: ignore
+        """test."""
         # Get the last line of the file (which has the status, assuming it has completed)
         statusLines = tail(dagmanOutputFilePath, 1)
 
@@ -540,82 +547,88 @@ class DAGManMetricsOutputFileInfo(object):
 
 # Class for storing metrics for a given condor job, as parsed from the log file
 class CondorJobMetrics(object):
+    """test."""
 
     # Members of CondorJobMetrics main class
-    def __init__(self, num=-1):
+    def __init__(self, num=-1):  # type: ignore
+        """test."""
         self.number = num
         self.logFileInfo = None
         self.outFileInfo = None
 
-    def parseLogFile(self, logFilePath):
+    def parseLogFile(self, logFilePath):  # type: ignore
+        """test."""
         self.logFileInfo = CondorJobMetricsLogFileInfo(logFilePath)
 
-    def parseOutFile(self, outFilePath):
+    def parseOutFile(self, outFilePath):  # type: ignore
+        """test."""
         self.outFileInfo = CondorJobMetricsOutFileInfo(outFilePath)
 
-    def fullyParsed(self):
+    def fullyParsed(self):  # type: ignore
+        """test."""
         return (
-            self.logFileInfo != None
+            self.logFileInfo is not None
             and self.logFileInfo.fullyParsed()
-            and self.outFileInfo != None
+            and self.outFileInfo is not None
             and self.outFileInfo.fullyParsed()
         )
 
-    def __str__(self):
+    def __str__(self):  # type: ignore
+        """test."""
         returnString = "Job %s:\n" % (
             "%i" % self.number if self.number > -1 else ""
         )
 
-        if self.logFileInfo != None:
+        if self.logFileInfo is not None:
             returnString += "  Log file info :\n"
             returnString += "    Submit time        : %s\n" % (
                 self.logFileInfo.submitTime
-                if self.logFileInfo.submitTime != None
+                if self.logFileInfo.submitTime is not None
                 else "[Not parsed]"
             )
             returnString += "    Execute time       : %s\n" % (
                 self.logFileInfo.executeTime
-                if self.logFileInfo.executeTime != None
+                if self.logFileInfo.executeTime is not None
                 else "[Not parsed]"
             )
             returnString += "    Terminate time     : %s\n" % (
                 self.logFileInfo.terminateTime
-                if self.logFileInfo.terminateTime != None
+                if self.logFileInfo.terminateTime is not None
                 else "[Not parsed]"
             )
             returnString += "    Execution duration : %s\n" % (
                 self.logFileInfo.getExecuteDuration()
-                if self.logFileInfo.getExecuteDuration() != None
+                if self.logFileInfo.getExecuteDuration() is not None
                 else "[Not parsed]"
             )
             returnString += "    Memory used        : %s\n" % (
                 "%i [MB]" % self.logFileInfo.memoryUsedMB
-                if self.logFileInfo.memoryUsedMB != None
+                if self.logFileInfo.memoryUsedMB is not None
                 else "[Not parsed]"
             )
             returnString += "    Memory requested   : %s\n" % (
                 "%i [MB]" % self.logFileInfo.memoryRequestedMB
-                if self.logFileInfo.memoryRequestedMB != None
+                if self.logFileInfo.memoryRequestedMB is not None
                 else "[Not parsed]"
             )
             returnString += "    Memory allocated   : %s\n" % (
                 "%i [MB]" % self.logFileInfo.memoryAllocatedMB
-                if self.logFileInfo.memoryAllocatedMB != None
+                if self.logFileInfo.memoryAllocatedMB is not None
                 else "[Not parsed]"
             )
             returnString += "    Return code        : %s\n" % (
                 str(self.logFileInfo.returnCode)
-                if self.logFileInfo.returnCode != None
+                if self.logFileInfo.returnCode is not None
                 else "[Not parsed]"
             )
         else:
             returnString += "  [Log file not parsed]\n"
 
-        if self.outFileInfo != None:
+        if self.outFileInfo is not None:
             returnString += "  Out file info :\n"
             returnString += "    Num sub jobs       : %s\n" % (
                 self.outFileInfo.numCommands
-                if self.outFileInfo.numCommands != None
+                if self.outFileInfo.numCommands is not None
                 else "[Not parsed]"
             )
         else:
@@ -626,15 +639,19 @@ class CondorJobMetrics(object):
 
 # Subclass to be filled with parsed out file
 class CondorJobMetricsOutFileInfo(object):
-    def __init__(self, outFilePath):
+    """test."""
+
+    def __init__(self, outFilePath):  # type: ignore
+        """test."""
         self.numCommands = None
         self.parse(outFilePath)
 
-    def fullyParsed(self):
-        return self.numCommands != None
+    def fullyParsed(self):  # type: ignore
+        """test."""
+        return self.numCommands is not None
 
-    def parse(self, outFilePath):
-
+    def parse(self, outFilePath):  # type: ignore
+        """test."""
         # Check file exists, open it, and read into a string
         if os.path.exists(outFilePath):
             self.outFilePath = outFilePath
@@ -644,8 +661,8 @@ class CondorJobMetricsOutFileInfo(object):
                 # Parse num commands
                 self.numCommands = self.getNumCommandsFromFile(outFileText)
 
-    def getNumCommandsFromFile(self, outFileText):
-
+    def getNumCommandsFromFile(self, outFileText):  # type: ignore
+        """test."""
         # Split text into lines
         lines = outFileText.split("\n")
 
@@ -664,7 +681,10 @@ class CondorJobMetricsOutFileInfo(object):
 
 # Subclass to be filled with parsed log file
 class CondorJobMetricsLogFileInfo(object):
-    def __init__(self, logFilePath):
+    """test."""
+
+    def __init__(self, logFilePath):  # type: ignore
+        """test."""
         self.submitTime = None
         self.executeTime = None
         self.terminateTime = None
@@ -677,19 +697,20 @@ class CondorJobMetricsLogFileInfo(object):
         self.timeLimitExceeded = None
         self.parse(logFilePath)
 
-    def fullyParsed(self):
+    def fullyParsed(self):  # type: ignore
+        """test."""
         return (
-            self.submitTime != None
-            and self.executeTime != None
-            and self.terminateTime != None
-            and self.memoryUsedMB != None
-            and self.memoryRequestedMB != None
-            and self.memoryAllocatedMB != None
-            and self.returnCode != None
+            self.submitTime is not None
+            and self.executeTime is not None
+            and self.terminateTime is not None
+            and self.memoryUsedMB is not None
+            and self.memoryRequestedMB is not None
+            and self.memoryAllocatedMB is not None
+            and self.returnCode is not None
         )
 
-    def parse(self, logFilePath):
-
+    def parse(self, logFilePath):  # type: ignore
+        """test."""
         # Check file exists, open it, and read into a string
         if os.path.exists(logFilePath):
             self.logFilePath = logFilePath
@@ -743,14 +764,15 @@ class CondorJobMetricsLogFileInfo(object):
         else:
             raise Exception("Job log file does not exists")
 
-    def getExecuteDuration(self):
+    def getExecuteDuration(self):  # type: ignore
+        """test."""
         if self.terminateTime and self.executeTime:
             return self.terminateTime - self.executeTime
         else:
             return None
 
-    def getTimeFromLineInFile(self, key):
-
+    def getTimeFromLineInFile(self, key):  # type: ignore
+        """test."""
         # Open the log file
         with open(self.logFilePath) as logFile:
 
@@ -782,8 +804,8 @@ class CondorJobMetricsLogFileInfo(object):
         # If here, didn't manage to parse
         return None
 
-    def getReturnCodeFromFile(self, logFileText):
-
+    def getReturnCodeFromFile(self, logFileText):  # type: ignore
+        """test."""
         # Parse return code from file
         returnCodeLength = 1
         key = "return value "
@@ -808,8 +830,8 @@ class CondorJobMetricsLogFileInfo(object):
         # If here, didn't manage to parse
         return None
 
-    def getMemoryUsageFromFile(self, logFileText):
-
+    def getMemoryUsageFromFile(self, logFileText):  # type: ignore
+        """test."""
         # Parse memory usage from file
         # Break into lines, find line with table containing memory info, then tokenise the oine and get the cells containing the memory used and requested
         key = "Memory (MB)"
@@ -836,7 +858,7 @@ if __name__ == "__main__":
     from .job import ClusterCommand, ClusterJob
 
     test_dir = "./tmp/condor"
-    make_dir(test_dir)
+    make_dir(test_dir)  # type: ignore
 
     exe_path = "echo"
     exe_args = [
@@ -852,4 +874,4 @@ if __name__ == "__main__":
         exe_path=exe_path,
         exe_args=exe_args,
         memory=1000,
-    )
+    )  # type: ignore

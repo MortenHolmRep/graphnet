@@ -1,35 +1,21 @@
-"""
-Tools for supporting DESY Zeuthen's Gridengine cluster system.
-
-Tom Stuttard
-"""
+"""test."""
 from __future__ import print_function
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import unicode_literals
 
 from builtins import open
-from future import standard_library
 
-standard_library.install_aliases()
-import os, collections
+import os
+import collections
 from math import floor
-from shutil import copy2
 
-
-#
-# Globals
-#
 
 GRIDENGINE_SUBMIT_EXE = "qsub"
 GRIDENGINE_SCRIPT_DIRECTIVE = "#$"
 
-#
-# Submission
-#
 
-# Create a Gridengine submit file
-def create_gridengine_submit_file(
+def create_gridengine_submit_file(  # type: ignore
     job_dir,
     job_name,
     exe_commands,
@@ -39,11 +25,12 @@ def create_gridengine_submit_file(
     working_dir=None,
     partition=None,
     use_gpu=False,
-    use_array=True,
-    num_cpus=None,
-    out_dir=None,
-    export_env=False,
-):
+    use_array: bool = True,  # type: ignore
+    num_cpus=None,  # type: ignore
+    out_dir=None,  # type: ignore
+    export_env: bool = False,
+):  # type: ignore
+    """test."""
     assert isinstance(
         exe_commands, collections.Sequence
     ), "`exe_commands` must be a list or similar"
@@ -155,10 +142,10 @@ def create_gridengine_submit_file(
 # TEST
 if __name__ == "__main__":
 
-    from graphnet.utils.cluster.filesys_tools import make_dir
+    from graphnet.utilities.cluster.filesys_tools import make_dir
 
     test_dir = "./tmp/gridengine"
-    make_dir(test_dir)
+    make_dir(test_dir)  # type: ignore
 
     exe_commands = [
         "echo 'bar'",
@@ -172,4 +159,4 @@ if __name__ == "__main__":
         memory=1000,
         wall_time_hours=1.0,
         use_array=True,
-    )
+    )  # type: ignore

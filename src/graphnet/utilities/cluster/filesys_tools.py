@@ -1,26 +1,16 @@
-"""
-Tools for file system operations
+"""test."""
 
-Tom Stuttard
-"""
+import os
+import glob
+import datetime
+import stat
+import shutil
 
-import os, glob, datetime, stat, shutil
-
-from graphnet.utils.cluster import containers
-
-# py2 vs 3 compatibility
-try:
-    input = raw_input
-except NameError:
-    pass
+from graphnet.utilities.cluster import containers
 
 
-#
-# Tools for handling files and directories
-#
-
-# Create a directory with robust error handling, including race conditions
-def make_dir(dir_path, raise_exception=False):
+def make_dir(dir_path):  # type: ignore
+    """test."""
     if not os.path.exists(dir_path):
         try:
             os.makedirs(dir_path)
@@ -32,8 +22,8 @@ def make_dir(dir_path, raise_exception=False):
     return False
 
 
-# Make a symbolic link, with error handling
-def make_symlink(file_path, link_path):
+def make_symlink(file_path, link_path):  # type: ignore
+    """test."""
     if not os.path.exists(file_path):
         raise Exception(
             'Could not create sym link : Source file "%s" does not exist'
@@ -50,7 +40,8 @@ def make_symlink(file_path, link_path):
 
 
 # Remove duplication in a list of files or directories, handling symlinks
-def trim_duplicate_paths(paths):
+def trim_duplicate_paths(paths):  # type: ignore
+    """test."""
     return containers.trim_duplicates([os.path.realpath(p) for p in paths])
 
 
@@ -58,7 +49,8 @@ def trim_duplicate_paths(paths):
 TMP_FILE_STRFTIME = "%Y-%m-%d_%H-%M-%S"
 
 
-def make_tmp_dir(parent_dir):
+def make_tmp_dir(parent_dir):  # type: ignore
+    """test."""
     dir_path = os.path.join(
         parent_dir, datetime.datetime.now().strftime(TMP_FILE_STRFTIME)
     )
@@ -67,13 +59,15 @@ def make_tmp_dir(parent_dir):
 
 
 # Get parent directory of a file (or potential file)
-def get_parent_dir(file_path):
+def get_parent_dir(file_path):  # type: ignore
+    """test."""
     # file_path = os.path.realpath(file_path)
     return os.path.abspath(os.path.dirname(file_path))
 
 
 # Get file stem
-def get_file_stem(file_path, include_path=False):
+def get_file_stem(file_path, include_path=False):  # type: ignore
+    """test."""
     tokens = os.path.splitext(
         file_path if include_path else os.path.basename(file_path)
     )
@@ -83,10 +77,9 @@ def get_file_stem(file_path, include_path=False):
         raise Exception('Could not extract stem from "%s"' % file_path)
 
 
-def replace_file_ext(file_path, ext, include_path=False):
-    """
-    Replace the extension in the file path with the one provided
-    """
+def replace_file_ext(file_path, ext, include_path=False):  # type: ignore
+    """test."""
+    """Replace the extension in the file path with the one provided."""
     new_file_path = get_file_stem(file_path, include_path=include_path)
     if not ext.startswith("."):
         new_file_path += "."
@@ -96,7 +89,8 @@ def replace_file_ext(file_path, ext, include_path=False):
 
 # Check that the containing directory exists for a given file path
 # Useful for checking before creating a new file that the directory actually exists
-def check_parent_dir_exists(file_path):
+def check_parent_dir_exists(file_path):  # type: ignore
+    """test."""
     dir_path = get_parent_dir(file_path)
     if os.path.isdir(dir_path):
         return True
@@ -105,26 +99,30 @@ def check_parent_dir_exists(file_path):
 
 
 # Make file executable
-def set_exectuable(file_path):
+def set_exectuable(file_path):  # type: ignore
+    """test."""
     if os.path.exists(file_path):
         os.chmod(file_path, os.stat(file_path).st_mode | stat.S_IEXEC)
 
 
 # Check file is executable
-def is_executable(file_path):
+def is_executable(file_path):  # type: ignore
+    """test."""
     if os.path.exists(file_path):
         return os.stat(file_path).st_mode & stat.S_IEXEC > 0
 
 
 # Check file/dir is writable
 # From https://stackoverflow.com/questions/2113427/determining-whether-a-directory-is-writeable
-def is_writable(file_path):
+def is_writable(file_path):  # type: ignore
+    """test."""
     if os.path.exists(file_path):
         return os.access(file_path, os.W_OK)
 
 
 # Get file size (bytes)
-def get_file_size(file_path):
+def get_file_size(file_path):  # type: ignore
+    """test."""
     if os.path.exists(file_path):
         return os.path.getsize(file_path)
     else:
@@ -132,7 +130,8 @@ def get_file_size(file_path):
 
 
 # Get nicely formatted units for file size (from http://stackoverflow.com/questions/2104080/how-to-check-file-size-in-python)
-def format_num_bytes(numBytes):
+def format_num_bytes(numBytes):  # type: ignore
+    """test."""
     for unit in [
         "[bytes]",
         "[kB]",
@@ -151,7 +150,8 @@ def format_num_bytes(numBytes):
 
 
 # Get file last modified time as datetime
-def get_file_mod_time(file_path):
+def get_file_mod_time(file_path):  # type: ignore
+    """test."""
     if os.path.exists(file_path):
         return datetime.datetime.fromtimestamp(os.path.getmtime(file_path))
     else:
@@ -161,7 +161,8 @@ def get_file_mod_time(file_path):
 
 
 # Get all subdirectories from a directory
-def get_subdirs(dir_path):
+def get_subdirs(dir_path):  # type: ignore
+    """test."""
     if not os.path.isdir(dir_path):
         raise Exception(
             'Could not find directory "%s", cannot get subdirectories'
@@ -171,7 +172,8 @@ def get_subdirs(dir_path):
 
 
 # Get all files in a directory (NOT recursive)
-def get_files_in_dir(dir_path):
+def get_files_in_dir(dir_path):  # type: ignore
+    """test."""
     if not os.path.isdir(dir_path):
         raise Exception(
             'Could not find directory "%s", cannot get files in directory'
@@ -181,9 +183,10 @@ def get_files_in_dir(dir_path):
 
 
 # Test if file locking is supported by the file system / mounting options for a directory
-def is_file_lock_possible(dir_path):
-
-    import fcntl, tempfile
+def is_file_lock_possible(dir_path):  # type: ignore
+    """test."""
+    import fcntl
+    import tempfile
 
     # Check directory to test exists
     if os.path.isdir(dir_path):
@@ -198,7 +201,7 @@ def is_file_lock_possible(dir_path):
                 fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
                 fcntl.flock(fd, fcntl.LOCK_UN)
                 return True
-            except e:
+            except Exception:
                 return False
 
     else:
@@ -207,15 +210,9 @@ def is_file_lock_possible(dir_path):
         )
 
 
-def remove_files(file_list, prompt=True, remove_dirs=False):
-    """
-    Remove/delete the files listed
-    Include a command line prompt if requested
-    Only delete directories in the list if `remove_dirs == True`
-    """
-
+def remove_files(file_list, prompt=True, remove_dirs=False):  # type: ignore
+    """test."""
     assert len(file_list) > 0, "No files provided to remove"
-
     # Let user know what is being removed
     print(
         "%i files%s to remove :"
@@ -257,7 +254,7 @@ def remove_files(file_list, prompt=True, remove_dirs=False):
                 os.remove(f)
             elif os.path.isdir(f):
                 assert (
-                    remove_dirs == True
+                    remove_dirs is True
                 ), "Found a directory to delete, but `remove_dirs` is False"
                 shutil.rmtree(f)
 
