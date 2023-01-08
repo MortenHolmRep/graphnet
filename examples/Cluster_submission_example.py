@@ -18,16 +18,14 @@ with ClusterSubmitter(  # type: ignore
     submit_dir=os.path.join(
         os.path.expanduser("~"), "graphnet", "results", "job"
     ),
-    output_dir=os.path.join(
-        os.path.expanduser("~"), "graphnet", "results", "job"
-    ),
+    output_dir="/data/user/mholm/storage/condor_results/",
     run_locally=False,
     # if on npx
-    # cluster_name="icecube_npx", # negates the npx or grid prompt when running on cobalt
+    cluster_name="icecube_npx", # negates the npx or grid prompt when running on cobalt
     start_up_commands=[
         os.path.join(
             "source ",
-            os.path.expanduser("$HOME/miniconda3/etc/profile.d/conda.sh"),
+            os.path.expanduser("/home/mholm/miniconda3/etc/profile.d/conda.sh"),
         )
     ],
 ) as submitter:  # type: ignore
@@ -38,7 +36,7 @@ with ClusterSubmitter(  # type: ignore
         command=[
             os.path.join(
                 "python ",
-                os.path.expanduser("$HOME/graphnet/examples/train_model.py"),
+                os.path.expanduser("/home/mholm/work/graphnet/examples/train_model.py"),
             )
         ],
         description="test",
