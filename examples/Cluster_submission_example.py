@@ -10,10 +10,10 @@ from graphnet.utilities.cluster_params import ClusterSubmitter
 # training example, full variable list available in cluster.py
 with ClusterSubmitter(  # type: ignore
     job_name="test_job",
-    flush_factor=1,  # How many commands to bunch into a single job [batch array later?]
-    num_cpus=10,
-    num_gpus=1,
-    memory=10 * 4096,  # most clusters have 4gb memory allocated per cpu
+    flush_factor=1,  # How many commands to bunch into a single job
+    num_cpus=1, #TODO: fetch cpu from training script
+    num_gpus=1, #TODO: fetch gpu from training script
+    memory=1 * 4096,  # most clusters have 4gb memory allocated per cpu #TODO: dynamic memory sizing according to cpu
     disk_space=1000,
     submit_dir=os.path.join(
         os.path.expanduser("~"), "graphnet", "results", "job"
@@ -25,7 +25,7 @@ with ClusterSubmitter(  # type: ignore
     start_up_commands=[
         os.path.join(
             "source ",
-            os.path.expanduser("/home/mholm/miniconda3/etc/profile.d/conda.sh"),
+            "/home/mholm/miniconda3/etc/profile.d/conda.sh",
         )
     ],
 ) as submitter:  # type: ignore
@@ -36,21 +36,9 @@ with ClusterSubmitter(  # type: ignore
         command=[
             os.path.join(
                 "python ",
-                os.path.expanduser("/home/mholm/work/graphnet/examples/train_model.py"),
+                "/home/mholm/work/graphnet/examples/train_model.py",
             )
         ],
         description="test",
         allowed_return_status=[5, 0],
     )  # Define acceptable return status values
-
-# submitter.add(
-# 	command="source /graphnet/examples/train_model_cluster.sh",
-# 	description="test",
-# 	allowed_return_status=[5,0]
-# )
-
-# submitter.add(
-# 	command=os.path.join("sh ", os.path.expanduser("~/train_model_cluster.sh")),
-# 	description="test",
-# 	allowed_return_status=[5,0]
-# )
