@@ -233,7 +233,7 @@ class ClusterJob(object):
             with open(self.wrapper_script, "w") as script:
 
                 # Write the shell shebang
-                script.write("#!/usr/bin/env bash\n")
+                script.write("#!/usr/bin/env bash\n") #python
 
                 # Write a header
                 script.write(
