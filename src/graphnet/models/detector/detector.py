@@ -1,15 +1,7 @@
+"""Base detector-specific `Model` class(es)."""
+
 from abc import abstractmethod
 from typing import List
-
-from graphnet.models.config import save_config
-
-try:
-    from typing import final
-except ImportError:  # Python version < 3.8
-
-    def final(f):  # Identity decorator
-        return f
-
 
 import torch
 from torch_geometric.data import Data
@@ -17,6 +9,8 @@ from torch_geometric.data.batch import Batch
 
 from graphnet.models.graph_builders import GraphBuilder
 from graphnet.models import Model
+from graphnet.utilities.config import save_model_config
+from graphnet.utilities.decorators import final
 
 
 class Detector(Model):
@@ -27,10 +21,11 @@ class Detector(Model):
     def features(self) -> List[str]:
         """List of features used/assumed by inheriting `Detector` objects."""
 
-    @save_config
+    @save_model_config
     def __init__(
         self, graph_builder: GraphBuilder, scalers: List[dict] = None
     ):
+        """Construct `Detector`."""
         # Base class constructor
         super().__init__()
 
@@ -41,14 +36,13 @@ class Detector(Model):
             self.info(
                 (
                     "Will use scalers rather than standard preprocessing "
-                    f"in {self.__class__.__name__}.",
+                    f"in {self.__class__.__name__}."
                 )
             )
 
     @final
     def forward(self, data: Data) -> Data:
         """Pre-process graph `Data` features and build graph adjacency."""
-
         # Check(s)
         assert data.x.size()[1] == self.nb_inputs, (
             "Got graph data with incompatible size, ",
@@ -70,11 +64,11 @@ class Detector(Model):
             x_numpy = data.x.detach().cpu().numpy()
 
             data.x[:, :3] = torch.tensor(
-                self._scalers["xyz"].transform(x_numpy[:, :3])
+                self._scalers["xyz"].transform(x_numpy[:, :3])  # type: ignore[call-overload]
             ).type_as(data.x)
 
             data.x[:, 3:] = torch.tensor(
-                self._scalers["features"].transform(x_numpy[:, 3:])
+                self._scalers["features"].transform(x_numpy[:, 3:])  # type: ignore[call-overload]
             ).type_as(data.x)
 
         else:
@@ -85,18 +79,22 @@ class Detector(Model):
 
     @abstractmethod
     def _forward(self, data: Data) -> Data:
-        """Same syntax as `.forward` for implentation in inheriting classes."""
+        """Syntax like `.forward`, for implentation in inheriting classes."""
 
     @property
     def nb_inputs(self) -> int:
+        """Return number of input features."""
         return len(self.features)
 
     @property
     def nb_outputs(self) -> int:
-        """This the default, but may be overridden by specific inheriting classes."""
+        """Return number of output features.
+
+        This the default, but may be overridden by specific inheriting classes.
+        """
         return self.nb_inputs
 
-    def _validate_features(self, data: Data):
+    def _validate_features(self, data: Data) -> None:
         if isinstance(data, Batch):
             # `data.features` is "transposed" and each list element contains only duplicate entries.
 

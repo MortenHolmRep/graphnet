@@ -1,27 +1,25 @@
-"""Unit tests for SQLiteDataConverter."""
+"""Unit tests for DataConverter and Dataset classes."""
+
 import os
 
-import numpy as np
+import pandas as pd
 import pytest
+import sqlite3
+import torch
 
+import graphnet.constants
+from graphnet.constants import TEST_OUTPUT_DIR
 from graphnet.data.constants import FEATURES, TRUTH
+from graphnet.data.dataconverter import DataConverter
 from graphnet.data.extractors import (
     I3FeatureExtractorIceCube86,
     I3TruthExtractor,
     I3RetroExtractor,
-    I3GenericExtractor,
 )
-from graphnet.data.parquet import (
-    ParquetDataset,
-    ParquetDataConverter,
-)
-from graphnet.data.sqlite import (
-    SQLiteDataset,
-    SQLiteDataConverter,
-)
-from graphnet.data.sqlite.sqlite_dataconverter import (
-    is_pulsemap_check,
-)
+from graphnet.data.parquet import ParquetDataset, ParquetDataConverter
+from graphnet.data.sqlite import SQLiteDataset, SQLiteDataConverter
+from graphnet.data.sqlite.sqlite_dataconverter import is_pulse_map
+from graphnet.data.utilities.parquet_to_sqlite import ParquetToSQLiteConverter
 from graphnet.utilities.imports import has_icecube_package
 
 if has_icecube_package():
@@ -29,47 +27,57 @@ if has_icecube_package():
 
 
 # Global variable(s)
-TEST_DATA_DIR = os.path.abspath("./test_data/")
-FILE_NAME = "oscNext_genie_level7_v03.01_pass2.160000.000001"
+TEST_DATA_DIR = os.path.join(
+    graphnet.constants.TEST_DATA_DIR, "i3", "oscNext_genie_level7_v02"
+)
+FILE_NAME = "oscNext_genie_level7_v02_first_5_frames"
 GCD_FILE = (
     "GeoCalibDetectorStatus_AVG_55697-57531_PASS2_SPE_withScaledNoise.i3.gz"
 )
 
 
 # Utility method(s)
-def get_file_path(backend: str, test_data_dir: str) -> str:
+def get_file_path(backend: str) -> str:
     """Return the path to the output file for `backend`."""
     suffix = {
         "sqlite": ".db",
         "parquet": ".parquet",
     }[backend]
 
-    path = os.path.join(test_data_dir, FILE_NAME + suffix)
+    path = os.path.join(TEST_OUTPUT_DIR, FILE_NAME + suffix)
     return path
 
 
 # Unit test(s)
-def test_is_pulsemap_check():
-    assert is_pulsemap_check("SplitInIcePulses") is True
-    assert is_pulsemap_check("SRTInIcePulses") is True
-    assert is_pulsemap_check("InIceDSTPulses") is True
-    assert is_pulsemap_check("RTTWOfflinePulses") is True
-    assert is_pulsemap_check("truth") is False
-    assert is_pulsemap_check("retro") is False
+def test_is_pulsemap_check() -> None:
+    """Test behaviour of `is_pulsemap_check`."""
+    assert is_pulse_map("SplitInIcePulses") is True
+    assert is_pulse_map("SRTInIcePulses") is True
+    assert is_pulse_map("InIceDSTPulses") is True
+    assert is_pulse_map("RTTWOfflinePulses") is True
+    assert is_pulse_map("truth") is False
+    assert is_pulse_map("retro") is False
 
 
 @pytest.mark.order(1)
 @pytest.mark.parametrize("backend", ["sqlite", "parquet"])
-def test_dataconverter(backend: str, test_data_dir: str = TEST_DATA_DIR):
+def test_dataconverter(
+    backend: str, test_data_dir: str = TEST_DATA_DIR
+) -> None:
     """Test the implementation of `DataConverter` for `backend`."""
     # Constructor DataConverter instance
+    extractors = [
+        I3TruthExtractor(),
+        I3RetroExtractor(),
+        I3FeatureExtractorIceCube86("SRTInIcePulses"),
+    ]
+    if backend == "sqlite":
+        extractors.append(
+            I3FeatureExtractorIceCube86("pulsemap_not_in_files_Pulses")
+        )
     opt = dict(
-        extractors=[
-            I3TruthExtractor(),
-            I3RetroExtractor(),
-            I3FeatureExtractorIceCube86("SRTInIcePulses"),
-        ],
-        outdir=test_data_dir,
+        extractors=extractors,
+        outdir=TEST_OUTPUT_DIR,
         gcd_rescue=os.path.join(
             test_data_dir,
             GCD_FILE,
@@ -77,10 +85,11 @@ def test_dataconverter(backend: str, test_data_dir: str = TEST_DATA_DIR):
         workers=1,
     )
 
+    converter: DataConverter
     if backend == "sqlite":
-        converter = SQLiteDataConverter(**opt)
+        converter = SQLiteDataConverter(**opt)  # type: ignore[arg-type]
     elif backend == "parquet":
-        converter = ParquetDataConverter(**opt)
+        converter = ParquetDataConverter(**opt)  # type: ignore[arg-type]
     else:
         assert False, "Shouldn't reach here"
 
@@ -88,87 +97,15 @@ def test_dataconverter(backend: str, test_data_dir: str = TEST_DATA_DIR):
     converter(test_data_dir)
 
     # Check output
-    path = get_file_path(backend, test_data_dir)
+    path = get_file_path(backend)
     assert os.path.exists(path), path
 
 
-def test_i3genericextractor(test_data_dir: str = TEST_DATA_DIR):
-    """Test the implementation of `I3GenericExtractor`."""
-
-    # Constants(s)
-    mc_tree = "I3MCTree"
-    pulse_series = "SRTInIcePulses"
-
-    # Constructor I3Extractor instance(s)
-    generic_extractor = I3GenericExtractor(keys=[mc_tree, pulse_series])
-    truth_extractor = I3TruthExtractor()
-    feature_extractor = I3FeatureExtractorIceCube86(pulse_series)
-
-    i3_file = os.path.join(test_data_dir, FILE_NAME) + ".i3.zst"
-    gcd_file = os.path.join(test_data_dir, GCD_FILE)
-
-    generic_extractor.set_files(i3_file, gcd_file)
-    truth_extractor.set_files(i3_file, gcd_file)
-    feature_extractor.set_files(i3_file, gcd_file)
-
-    i3_file_io = dataio.I3File(i3_file, "r")
-    ix_test = 10
-    while i3_file_io.more():
-        try:
-            frame = i3_file_io.pop_physics()
-        except:  # noqa: E722
-            continue
-
-        generic_data = generic_extractor(frame)
-        truth_data = truth_extractor(frame)
-        feature_data = feature_extractor(frame)
-
-        if ix_test == 10:
-            print(list(generic_data[pulse_series].keys()))
-            print(list(truth_data.keys()))
-            print(list(feature_data.keys()))
-
-        # Truth vs. generic
-        key_pairs = [
-            ("energy", "energy"),
-            ("zenith", "dir__zenith"),
-            ("azimuth", "dir__azimuth"),
-            ("pid", "pdg_encoding"),
-        ]
-
-        for truth_key, generic_key in key_pairs:
-            assert (
-                truth_data[truth_key]
-                == generic_data[f"{mc_tree}__primaries"][generic_key][0]
-            )
-
-        # Reco vs. generic
-        key_pairs = [
-            ("charge", "charge"),
-            ("dom_time", "time"),
-            ("dom_x", "position__x"),
-            ("dom_y", "position__y"),
-            ("dom_z", "position__z"),
-            ("width", "width"),
-            ("pmt_area", "area"),
-            # ("rde", "relative_dom_efficiency"),  <-- Missing
-        ]
-
-        for reco_key, generic_key in key_pairs:
-            assert np.allclose(
-                feature_data[reco_key], generic_data[pulse_series][generic_key]
-            )
-
-        ix_test -= 1
-        if ix_test == 0:
-            break
-
-
-@pytest.mark.order(3)
+@pytest.mark.order(2)
 @pytest.mark.parametrize("backend", ["sqlite", "parquet"])
-def test_dataset(backend: str, test_data_dir: str = TEST_DATA_DIR):
+def test_dataset(backend: str) -> None:
     """Test the implementation of `Dataset` for `backend`."""
-    path = get_file_path(backend, test_data_dir)
+    path = get_file_path(backend)
     assert os.path.exists(path)
 
     # Constructor DataConverter instance
@@ -180,38 +117,21 @@ def test_dataset(backend: str, test_data_dir: str = TEST_DATA_DIR):
     )
 
     if backend == "sqlite":
-        dataset = SQLiteDataset(**opt)
+        dataset = SQLiteDataset(**opt)  # type: ignore[arg-type]
     elif backend == "parquet":
-        dataset = ParquetDataset(**opt)
+        dataset = ParquetDataset(**opt)  # type: ignore[arg-type]
     else:
         assert False, "Shouldn't reach here"
 
     # Compare to expectations
-    expected_number_of_events = 5552
-    test_indices = list(range(10)) + list(
-        range(expected_number_of_events - 10, expected_number_of_events)
-    )
+    expected_number_of_events = 5
+    test_indices = list(range(expected_number_of_events))
     expected_numbers_of_pulses = [
+        9,
+        9,
+        12,
         11,
-        13,
-        9,
-        13,
-        8,
-        8,
-        9,
-        9,
-        9,
-        8,
-        147,
-        21,
-        238,
-        469,
-        181,
-        22,
-        47,
-        121,
-        18,
-        246,
+        15,
     ]
 
     assert len(dataset) == expected_number_of_events
@@ -226,6 +146,114 @@ def test_dataset(backend: str, test_data_dir: str = TEST_DATA_DIR):
         assert len(event.features) == len(opt["features"])
 
 
+@pytest.mark.order(3)
+@pytest.mark.parametrize("backend", ["sqlite", "parquet"])
+def test_datasetquery_table(backend: str) -> None:
+    """Test the implementation of `Dataset.query_table` for `backend`."""
+    path = get_file_path(backend)
+    assert os.path.exists(path)
+
+    # Constructor DataConverter instance
+    pulsemap = "SRTInIcePulses"
+    opt = dict(
+        path=path,
+        pulsemaps=pulsemap,
+        features=FEATURES.DEEPCORE,
+        truth=TRUTH.DEEPCORE,
+    )
+
+    if backend == "sqlite":
+        dataset = SQLiteDataset(**opt)  # type: ignore[arg-type]
+    elif backend == "parquet":
+        dataset = ParquetDataset(**opt)  # type: ignore[arg-type]
+    else:
+        assert False, "Shouldn't reach here"
+
+    # Compare to expectations
+    nb_events_to_test = 5
+    results_all = dataset.query_table(
+        pulsemap,
+        columns=["event_no", opt["features"][0]],
+    )
+    for ix_test in range(nb_events_to_test):
+
+        results_single = dataset.query_table(
+            pulsemap,
+            columns=["event_no", opt["features"][0]],
+            sequential_index=ix_test,
+        )
+        event_nos = list(set([res[0] for res in results_single]))
+        assert len(event_nos) == 1
+        event_no: int = event_nos[0]
+        results_all_subset = [res for res in results_all if res[0] == event_no]
+        assert results_all_subset == results_single
+
+
+@pytest.mark.order(4)
+def test_parquet_to_sqlite_converter() -> None:
+    """Test the implementation of `ParquetToSQLiteConverter`."""
+    # Constructor ParquetToSQLiteConverter instance
+    converter = ParquetToSQLiteConverter(
+        parquet_path=get_file_path("parquet"),
+        mc_truth_table="truth",
+    )
+
+    # Perform conversion from I3 to `backend`
+    database_name = FILE_NAME + "_from_parquet"
+    converter.run(TEST_OUTPUT_DIR, database_name)
+
+    # Check that output exists
+    path = f"{TEST_OUTPUT_DIR}/{database_name}/data/{database_name}.db"
+    assert os.path.exists(path), path
+
+    # Check that datasets agree
+    opt = dict(
+        pulsemaps="SRTInIcePulses",
+        features=FEATURES.DEEPCORE,
+        truth=TRUTH.DEEPCORE,
+    )
+
+    dataset_from_parquet = SQLiteDataset(path, **opt)  # type: ignore[arg-type]
+    dataset = SQLiteDataset(get_file_path("sqlite"), **opt)  # type: ignore[arg-type]
+
+    assert len(dataset_from_parquet) == len(dataset)
+    for ix in range(len(dataset)):
+        assert torch.allclose(dataset_from_parquet[ix].x, dataset[ix].x)
+
+
+@pytest.mark.order(5)
+@pytest.mark.parametrize("pulsemap", ["SRTInIcePulses"])
+@pytest.mark.parametrize("event_no", [1])
+def test_database_query_plan(pulsemap: str, event_no: int) -> None:
+    """Test query plan agreement in original and parquet-converted database."""
+    # Configure paths to databases to compare
+    database_name = FILE_NAME + "_from_parquet"
+    parquet_converted_database = (
+        f"{TEST_OUTPUT_DIR}/{database_name}/data/{database_name}.db"
+    )
+    sqlite_database = get_file_path("sqlite")
+
+    # Get query plans
+    query = f"""
+    EXPLAIN QUERY PLAN
+    SELECT * FROM {pulsemap}
+    WHERE event_no={event_no}
+    """
+    with sqlite3.connect(sqlite_database) as conn:
+        sqlite_plan = pd.read_sql(query, conn)
+
+    with sqlite3.connect(parquet_converted_database) as conn:
+        parquet_plan = pd.read_sql(query, conn)
+
+    # Compare
+    assert "USING INDEX event_no" in sqlite_plan["detail"].iloc[0]
+    assert "USING INDEX event_no" in parquet_plan["detail"].iloc[0]
+
+    assert (sqlite_plan["detail"] == parquet_plan["detail"]).all()
+
+
 if __name__ == "__main__":
-    # test_dataconverter("sqlite")
-    test_i3genericextractor()
+    test_dataconverter("sqlite")
+    test_dataconverter("parquet")
+    test_parquet_to_sqlite_converter()
+    test_database_query_plan("SRTInIcePulses", 1)

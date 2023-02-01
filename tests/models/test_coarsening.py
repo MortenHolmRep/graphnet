@@ -1,16 +1,15 @@
-"""Unit tests for loss functions."""
+"""Unit tests for Coarsening class."""
 
 import torch
 from torch_geometric.data import Data, Batch
 
 from graphnet.models.components.pool import group_by
-from graphnet.models.coarsening import Coarsening
+from graphnet.models.coarsening import AttributeCoarsening
 
 
 # Utility method(s)
 def _get_test_data() -> Batch:
     """Produce toy data for unit tests."""
-
     data1 = Data(
         x=torch.tensor(
             [
@@ -106,22 +105,18 @@ def _get_test_data() -> Batch:
     return batch
 
 
-class SimpleCoarsening(Coarsening):
-    """Simple coarsening operation for the purposes of testing."""
-
-    def _perform_clustering(self, data: Data) -> torch.LongTensor:
-        """Perform clustering of nodes in `data` by assigning unique cluster indices to each."""
-        return group_by(data, ["x0", "x1", "x2"])
-
-
 # Unit test(s)
-def test_attribute_transfer():
+def test_attribute_transfer() -> None:
     """Testing the transfering of auxillary attributes during coarsening."""
     # Check(s)
     data = _get_test_data()
 
     # Perform coarsening
-    coarsening = SimpleCoarsening(reduce="avg", transfer_attributes=False)
+    coarsening = AttributeCoarsening(
+        attributes=["x0", "x1", "x2"],
+        reduce="avg",
+        transfer_attributes=False,
+    )
     pooled_data = coarsening(data)
 
     # Test(s)
@@ -132,7 +127,11 @@ def test_attribute_transfer():
     assert not hasattr(pooled_data, "attr2")
 
     # Perform coarsening
-    coarsening = SimpleCoarsening(reduce="avg", transfer_attributes=True)
+    coarsening = AttributeCoarsening(
+        attributes=["x0", "x1", "x2"],
+        reduce="avg",
+        transfer_attributes=True,
+    )
     pooled_data = coarsening(data)
 
     # Test(s)
@@ -146,13 +145,17 @@ def test_attribute_transfer():
     assert pooled_data.x.size(dim=0) == pooled_data["attr1"].size(dim=0)
 
 
-def test_batch_reconstruction():
-    """Testing the batch reconstruction"""
+def test_batch_reconstruction() -> None:
+    """Testing the batch reconstruction."""
     # Check(s)
     data = _get_test_data()
     original_batch_idx = data.batch
     # Perform coarsening
-    coarsening = SimpleCoarsening(reduce="avg", transfer_attributes=False)
+    coarsening = coarsening = AttributeCoarsening(
+        attributes=["x0", "x1", "x2"],
+        reduce="avg",
+        transfer_attributes=False,
+    )
     pooled_data = coarsening(data)
 
     # Check that the number of batches is as expected.

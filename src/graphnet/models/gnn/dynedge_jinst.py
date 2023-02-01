@@ -10,24 +10,26 @@ from torch_geometric.data import Data
 from torch_scatter import scatter_max, scatter_mean, scatter_min, scatter_sum
 
 from graphnet.models.components.layers import DynEdgeConv
-from graphnet.models.config import save_config
+from graphnet.utilities.config import save_model_config
 from graphnet.models.gnn.gnn import GNN
 from graphnet.models.utils import calculate_xyzt_homophily
 
 
 class DynEdgeJINST(GNN):
-    @save_config
+    """DynEdge (dynamical edge convolutional) model used in [2209.03042]."""
+
+    @save_model_config
     def __init__(
         self,
         nb_inputs: int,
-        layer_size_scale: Optional[int] = 4,
+        layer_size_scale: int = 4,
     ):
-        """DynEdge model.
+        """Construct `DynEdgeJINST`.
+
         Args:
-            nb_inputs (int): Number of input features.
-            nb_outputs (int): Number of output features.
-            layer_size_scale (int, optional): Integer that scales the size of
-                hidden layers. Defaults to 4.
+            nb_inputs: Number of input features.
+            nb_outputs: Number of output features.
+            layer_size_scale: Integer that scales the size of hidden layers.
         """
         # Architecture configuration
         c = layer_size_scale
@@ -102,12 +104,7 @@ class DynEdgeJINST(GNN):
         self.lrelu = torch.nn.LeakyReLU()
 
     def forward(self, data: Data) -> Tensor:
-        """Model forward pass.
-        Args:
-            data (Data): Graph of input features.
-        Returns:
-            Tensor: Model output.
-        """
+        """Apply learnable forward pass."""
         # Convenience variables
         x, edge_index, batch = data.x, data.edge_index, data.batch
 

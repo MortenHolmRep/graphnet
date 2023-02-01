@@ -1,21 +1,35 @@
+"""Utility functions for `graphnet.training`."""
+
 from collections import OrderedDict
 import os
-from typing import List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union, Callable
 
 import numpy as np
 import pandas as pd
 from pytorch_lightning import Trainer
 from sklearn.model_selection import train_test_split
 from torch.utils.data import DataLoader
-from torch_geometric.data.batch import Batch
+from torch_geometric.data import Batch, Data
 
-from graphnet.data.sqlite.sqlite_dataset import SQLiteDataset
+from graphnet.data.dataset import Dataset
+from graphnet.data.sqlite import SQLiteDataset
+from graphnet.data.parquet import ParquetDataset
 from graphnet.models import Model
 from graphnet.utilities.logging import get_logger
 
 logger = get_logger()
 
 
+def collate_fn(graphs: List[Data]) -> Batch:
+    """Remove graphs with less than two DOM hits.
+
+    Should not occur in "production.
+    """
+    graphs = [g for g in graphs if g.n_pulses > 1]
+    return Batch.from_data_list(graphs)
+
+
+# @TODO: Remove in favour of DataLoader{,.from_dataset_config}
 def make_dataloader(
     db: str,
     pulsemaps: Union[str, List[str]],
@@ -24,17 +38,19 @@ def make_dataloader(
     *,
     batch_size: int,
     shuffle: bool,
-    selection: List[int] = None,
+    selection: Optional[List[int]] = None,
     num_workers: int = 10,
     persistent_workers: bool = True,
-    node_truth: str = None,
-    node_truth_table: str = None,
+    node_truth: List[str] = None,
+    truth_table: str = "truth",
+    node_truth_table: Optional[str] = None,
     string_selection: List[int] = None,
-    loss_weight_table: str = None,
-    loss_weight_column: str = None,
+    loss_weight_table: Optional[str] = None,
+    loss_weight_column: Optional[str] = None,
+    index_column: str = "event_no",
+    labels: Optional[Dict[str, Callable]] = None,
 ) -> DataLoader:
     """Construct `DataLoader` instance."""
-
     # Check(s)
     if isinstance(pulsemaps, str):
         pulsemaps = [pulsemaps]
@@ -46,16 +62,18 @@ def make_dataloader(
         truth=truth,
         selection=selection,
         node_truth=node_truth,
+        truth_table=truth_table,
         node_truth_table=node_truth_table,
         string_selection=string_selection,
         loss_weight_table=loss_weight_table,
         loss_weight_column=loss_weight_column,
+        index_column=index_column,
     )
 
-    def collate_fn(graphs):
-        # Remove graphs with less than two DOM hits. Should not occur in "production."
-        graphs = [g for g in graphs if g.n_pulses > 1]
-        return Batch.from_data_list(graphs)
+    # adds custom labels to dataset
+    if isinstance(labels, dict):
+        for label in labels.keys():
+            dataset.add_label(key=label, fn=labels[label])
 
     dataloader = DataLoader(
         dataset,
@@ -70,33 +88,63 @@ def make_dataloader(
     return dataloader
 
 
+# @TODO: Remove in favour of DataLoader{,.from_dataset_config}
 def make_train_validation_dataloader(
     db: str,
-    selection: List[int],
+    selection: Optional[List[int]],
     pulsemaps: Union[str, List[str]],
     features: List[str],
     truth: List[str],
     *,
     batch_size: int,
-    database_indices: List[int] = None,
+    database_indices: Optional[List[int]] = None,
     seed: int = 42,
     test_size: float = 0.33,
     num_workers: int = 10,
     persistent_workers: bool = True,
-    node_truth: str = None,
-    node_truth_table: str = None,
-    string_selection: List[int] = None,
-    loss_weight_column: str = None,
-    loss_weight_table: str = None,
-) -> Tuple[DataLoader]:
+    node_truth: Optional[str] = None,
+    truth_table: str = "truth",
+    node_truth_table: Optional[str] = None,
+    string_selection: Optional[List[int]] = None,
+    loss_weight_column: Optional[str] = None,
+    loss_weight_table: Optional[str] = None,
+    index_column: str = "event_no",
+    labels: Optional[Dict[str, Callable]] = None,
+) -> Tuple[DataLoader, DataLoader]:
     """Construct train and test `DataLoader` instances."""
-
     # Reproducibility
     rng = np.random.RandomState(seed=seed)
 
     # Checks(s)
     if isinstance(pulsemaps, str):
         pulsemaps = [pulsemaps]
+
+    if selection is None:
+        # If no selection is provided, use all events in dataset.
+        dataset: Dataset
+        if db.endswith(".db"):
+            dataset = SQLiteDataset(
+                db,
+                pulsemaps,
+                features,
+                truth,
+                truth_table=truth_table,
+                index_column=index_column,
+            )
+        elif db.endswith(".parquet"):
+            dataset = ParquetDataset(
+                db,
+                pulsemaps,
+                features,
+                truth,
+                truth_table=truth_table,
+                index_column=index_column,
+            )
+        else:
+            raise RuntimeError(
+                f"File {db} with format {db.split('.'[-1])} not supported."
+            )
+        selection = dataset._get_all_indices()
 
     # Perform train/validation split
     if isinstance(db, list):
@@ -126,22 +174,25 @@ def make_train_validation_dataloader(
         num_workers=num_workers,
         persistent_workers=persistent_workers,
         node_truth=node_truth,
+        truth_table=truth_table,
         node_truth_table=node_truth_table,
         string_selection=string_selection,
         loss_weight_column=loss_weight_column,
         loss_weight_table=loss_weight_table,
+        index_column=index_column,
+        labels=labels,
     )
 
     training_dataloader = make_dataloader(
         shuffle=True,
         selection=training_selection,
-        **common_kwargs,
+        **common_kwargs,  # type: ignore[arg-type]
     )
 
     validation_dataloader = make_dataloader(
         shuffle=False,
         selection=validation_selection,
-        **common_kwargs,
+        **common_kwargs,  # type: ignore[arg-type]
     )
 
     return (
@@ -150,6 +201,7 @@ def make_train_validation_dataloader(
     )
 
 
+# @TODO: Remove in favour of Model.predict{,_as_dataframe}
 def get_predictions(
     trainer: Trainer,
     model: Model,
@@ -173,10 +225,10 @@ def get_predictions(
 
     # Get predictions
     predictions_torch = trainer.predict(model, dataloader)
-    predictions = [
+    predictions_list = [
         p[0].detach().cpu().numpy() for p in predictions_torch
     ]  # Assuming single task
-    predictions = np.concatenate(predictions, axis=0)
+    predictions = np.concatenate(predictions_list, axis=0)
     try:
         assert len(prediction_columns) == predictions.shape[1]
     except IndexError:
@@ -184,7 +236,9 @@ def get_predictions(
         assert len(prediction_columns) == predictions.shape[1]
 
     # Get additional attributes
-    attributes = OrderedDict([(attr, []) for attr in additional_attributes])
+    attributes: Dict[str, List[np.ndarray]] = OrderedDict(
+        [(attr, []) for attr in additional_attributes]
+    )
     for batch in dataloader:
         for attr in attributes:
             attribute = batch[attr].detach().cpu().numpy()
@@ -209,9 +263,10 @@ def get_predictions(
     return results
 
 
+# @TODO: Remove
 def save_results(
     db: str, tag: str, results: pd.DataFrame, archive: str, model: Model
-):
+) -> None:
     """Save trained model and prediction `results` in `db`."""
     db_name = db.split("/")[-1].split(".")[0]
     path = archive + "/" + db_name + "/" + tag

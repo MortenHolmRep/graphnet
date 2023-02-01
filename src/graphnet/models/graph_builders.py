@@ -1,29 +1,32 @@
-from abc import abstractmethod
+"""Class(es) for building/connecting graphs."""
+
 from typing import List
 
 import torch
 from torch_geometric.nn import knn_graph, radius_graph
 from torch_geometric.data import Data
 
-from graphnet.models.config import save_config
+from graphnet.utilities.config import save_model_config
 from graphnet.models.utils import calculate_distance_matrix
 from graphnet.models import Model
 
 
 class GraphBuilder(Model):  # pylint: disable=too-few-public-methods
+    """Base class for graph building."""
+
     pass
 
 
 class KNNGraphBuilder(GraphBuilder):  # pylint: disable=too-few-public-methods
-    """Builds graph adjacency according to the k-nearest neighbours."""
+    """Builds graph from the k-nearest neighbours."""
 
-    @save_config
+    @save_model_config
     def __init__(
         self,
         nb_nearest_neighbours: int,
         columns: List[int] = None,
-        device: str = None,
     ):
+        """Construct `KNNGraphBuilder`."""
         # Base class constructor
         super().__init__()
 
@@ -34,37 +37,36 @@ class KNNGraphBuilder(GraphBuilder):  # pylint: disable=too-few-public-methods
         # Member variable(s)
         self._nb_nearest_neighbours = nb_nearest_neighbours
         self._columns = columns
-        self._device = device
 
     def forward(self, data: Data) -> Data:
-        # Constructs the adjacency matrix from the raw, DOM-level data and returns this matrix
+        """Forward pass."""
+        # Constructs the adjacency matrix from the raw, DOM-level data and
+        # returns this matrix
         if data.edge_index is not None:
             self.info(
-                (
-                    "WARNING: GraphBuilder received graph with pre-existing structure. "
-                    "Will overwrite.",
-                )
+                "WARNING: GraphBuilder received graph with pre-existing "
+                "structure. Will overwrite."
             )
 
         data.edge_index = knn_graph(
             data.x[:, self._columns],
             self._nb_nearest_neighbours,
             data.batch,
-        ).to(self._device)
+        ).to(self.device)
 
         return data
 
 
 class RadialGraphBuilder(GraphBuilder):
-    """Builds graph adjacency according to a sphere of chosen radius centred at each DOM hit"""
+    """Builds graph from a sphere of chosen radius centred at each node."""
 
-    @save_config
+    @save_model_config
     def __init__(
         self,
         radius: float,
         columns: List[int] = None,
-        device: str = None,
     ):
+        """Construct `RadialGraphBuilder`."""
         # Base class constructor
         super().__init__()
 
@@ -75,37 +77,42 @@ class RadialGraphBuilder(GraphBuilder):
         # Member variable(s)
         self._radius = radius
         self._columns = columns
-        self._device = device
 
     def forward(self, data: Data) -> Data:
-        # Constructs the adjacency matrix from the raw, DOM-level data and returns this matrix
+        """Forward pass."""
+        # Constructs the adjacency matrix from the raw, DOM-level data and
+        # returns this matrix
         if data.edge_index is not None:
             self.info(
-                (
-                    "WARNING: GraphBuilder received graph with pre-existing structure. "
-                    "Will overwrite.",
-                )
+                "WARNING: GraphBuilder received graph with pre-existing "
+                "structure. Will overwrite."
             )
 
         data.edge_index = radius_graph(
             data.x[:, self._columns],
             self._radius,
             data.batch,
-        ).to(self._device)
+        ).to(self.device)
 
         return data
 
 
-class EuclideanGraphBuilder(GraphBuilder):
-    """Builds graph adjacency according to Euclidean distance as in https://arxiv.org/pdf/1809.06166.pdf"""
+class EuclideanGraphBuilder(
+    GraphBuilder
+):  # pylint: disable=too-few-public-methods
+    """Builds graph according to Euclidean distance between nodes.
 
-    @save_config
+    See https://arxiv.org/pdf/1809.06166.pdf.
+    """
+
+    @save_model_config
     def __init__(
         self,
         sigma: float,
         threshold: float = 0.0,
         columns: List[int] = None,
     ):
+        """Construct `EuclideanGraphBuilder`."""
         # Base class constructor
         super().__init__()
 
@@ -119,18 +126,19 @@ class EuclideanGraphBuilder(GraphBuilder):
         self._columns = columns
 
     def forward(self, data: Data) -> Data:
-        # Constructs the adjacency matrix from the raw, DOM-level data and returns this matrix
+        """Forward pass."""
+        # Constructs the adjacency matrix from the raw, DOM-level data and
+        # returns this matrix
         if data.edge_index is not None:
             self.info(
-                (
-                    "WARNING: GraphBuilder received graph with pre-existing structure. "
-                    "Will overwrite.",
-                )
+                "WARNING: GraphBuilder received graph with pre-existing "
+                "structure. Will overwrite."
             )
 
         xyz_coords = data.x[:, self._columns]
 
-        # Construct block-diagonal matrix indicating whether pulses belong to the same event in the batch
+        # Construct block-diagonal matrix indicating whether pulses belong to
+        # the same event in the batch
         batch_mask = data.batch.unsqueeze(dim=0) == data.batch.unsqueeze(dim=1)
 
         distance_matrix = calculate_distance_matrix(xyz_coords)
@@ -144,7 +152,8 @@ class EuclideanGraphBuilder(GraphBuilder):
             affinity_matrix
         ) / exp_row_sums.unsqueeze(dim=1)
 
-        # Only include edges with weights that exceed the chosen threshold (and are part of the same event)
+        # Only include edges with weights that exceed the chosen threshold (and
+        # are part of the same event)
         sources, targets = torch.where(
             (weighted_adj_matrix > self._threshold) & (batch_mask)
         )
