@@ -43,6 +43,22 @@ class AzimuthReconstructionWithKappa(Task):
         return torch.stack((angle, kappa), dim=1)
 
 
+class AzimuthReconstructionWithKappa_v2(Task):
+    """Reconstructs azimuthal angle and associated kappa (1/var)."""
+
+    # Requires two features: untransformed points in (x,y)-space.
+    nb_inputs = 2
+
+    def _forward(self, x: Tensor) -> Tensor:
+        # Transform outputs to angle and prepare prediction
+        kappa = torch.linalg.vector_norm(x, dim=1) + eps_like(x)
+        angle = torch.atan2(x[:, 1], x[:, 0])
+        angle = torch.fmod(
+            angle + 2 * np.pi, 2 * np.pi
+        )  # atan(y,x) -> [-pi, pi]
+        return torch.stack((angle, kappa), dim=1)
+
+
 class AzimuthReconstruction(AzimuthReconstructionWithKappa):
     """Reconstructs azimuthal angle."""
 
@@ -95,6 +111,51 @@ class ZenithReconstructionWithKappa(ZenithReconstruction):
 
     def _forward(self, x: Tensor) -> Tensor:
         # Transform outputs to angle and prepare prediction
+        angle = super()._forward(x[:, :1]).squeeze(1)
+        kappa = torch.abs(x[:, 1]) + eps_like(x)
+        sigma = torch.sqrt(1.0 / kappa)
+        beta = 1e-3
+        kl_loss = torch.mean(sigma**2 - torch.log(sigma) - 1)
+        self._regularisation_loss += beta * kl_loss
+        return torch.stack((angle, kappa), dim=1)
+
+
+class PointingReconstructionWithKappa_v2(
+    AzimuthReconstructionWithKappa, ZenithReconstructionWithKappa
+):
+    """Reconstructs azimuthal and zenith angle and associated kappa (1/var)."""
+
+    # Requires three features: untransformed points in (x,y,z)-space.
+    nb_inputs = 3
+
+    def _forward(self, x: Tensor) -> Tensor:
+        # Transform outputs to angles and prepare prediction
+        zenith = ZenithReconstructionWithKappa._forward(
+            self, x[:, :1]
+        ).squeeze(1)
+        azimuth = AzimuthReconstructionWithKappa._forward(self, x[:, 1:3])[
+            :, 0
+        ]
+        kappa = torch.abs(x[:, 2]) + eps_like(x)
+        return torch.stack((zenith, azimuth, kappa), dim=1)
+
+
+# type: ignore
+class ZenithReconstructionWithKappa_v2(ZenithReconstruction):
+    """Reconstructs zenith angle and associated kappa (1/var)."""
+
+    # Requires one feature in addition to `ZenithReconstruction`: kappa (unceratinty; 1/variance).
+    nb_inputs = 2
+
+    def __init__(self, *args, **kwargs):  # type: ignore
+        """Test batch normalization."""
+        super().__init__(*args, **kwargs)
+        # Accounting for covariate shift in batch
+        self.batch_norm = torch.nn.BatchNorm1d(self.nb_inputs)
+
+    def _forward(self, x: Tensor) -> Tensor:
+        # Transform outputs to angle and prepare prediction
+        x = self.batch_norm(x)
         angle = super()._forward(x[:, :1]).squeeze(1)
         kappa = torch.abs(x[:, 1]) + eps_like(x)
         return torch.stack((angle, kappa), dim=1)
