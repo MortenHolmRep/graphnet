@@ -115,12 +115,9 @@
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/material.css" />
     <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
-    <script src="../../../_static/jquery.js"></script>
-    <script src="../../../_static/underscore.js"></script>
-    <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../../_static/doctools.js"></script>
     <script src="../../../_static/sphinx_highlight.js"></script>
-    <link rel="shortcut icon" href="../../../_static/favicon.svg"/>
+    <link rel="icon" href="../../../_static/favicon.svg"/>
     <link rel="author" title="About these documents" href="../../../about.html" />
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
@@ -150,8 +147,7 @@
         <a href="../../../index.html" title="graphnet  documentation"
            class="md-header-nav__button md-logo">
           
-              <img src="../../../_static/favicon-white.svg" height="26"
-                   alt="graphnet documentation logo">
+            &nbsp;
           
         </a>
       </div>
@@ -250,7 +246,7 @@
   <label class="md-nav__title md-nav__title--site" for="__drawer">
     <a href="../../../index.html" title="graphnet documentation" class="md-nav__button md-logo">
       
-        <img src="../../../_static/favicon-white.svg" alt=" logo" width="48" height="48">
+        <img src="../../../_static/" alt=" logo" width="48" height="48">
       
     </a>
     <a href="../../../index.html"
@@ -359,7 +355,7 @@
 <span class="kn">from</span> <span class="nn">graphnet.utilities.decorators</span> <span class="kn">import</span> <span class="n">final</span>
 <span class="kn">from</span> <span class="nn">graphnet.utilities.filesys</span> <span class="kn">import</span> <span class="n">find_i3_files</span>
 <span class="kn">from</span> <span class="nn">graphnet.utilities.imports</span> <span class="kn">import</span> <span class="n">has_icecube_package</span>
-<span class="kn">from</span> <span class="nn">graphnet.utilities.logging</span> <span class="kn">import</span> <span class="n">LoggerMixin</span>
+<span class="kn">from</span> <span class="nn">graphnet.utilities.logging</span> <span class="kn">import</span> <span class="n">Logger</span>
 
 <span class="k">if</span> <span class="n">has_icecube_package</span><span class="p">():</span>
     <span class="kn">from</span> <span class="nn">icecube</span> <span class="kn">import</span> <span class="n">icetray</span><span class="p">,</span> <span class="n">dataio</span>  <span class="c1"># pyright: reportMissingImports=false</span>
@@ -408,7 +404,7 @@
     <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="n">F</span><span class="p">,</span> <span class="n">wrapper</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="DataConverter"><a class="viewcode-back" href="../../../api/graphnet.data.dataconverter.html#graphnet.data.dataconverter.DataConverter">[docs]</a><span class="k">class</span> <span class="nc">DataConverter</span><span class="p">(</span><span class="n">ABC</span><span class="p">,</span> <span class="n">LoggerMixin</span><span class="p">):</span>
+<div class="viewcode-block" id="DataConverter"><a class="viewcode-back" href="../../../api/graphnet.data.dataconverter.html#graphnet.data.dataconverter.DataConverter">[docs]</a><span class="k">class</span> <span class="nc">DataConverter</span><span class="p">(</span><span class="n">ABC</span><span class="p">,</span> <span class="n">Logger</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Base class for converting I3-files to intermediate file format."""</span>
 
     <span class="nd">@property</span>
@@ -507,6 +503,9 @@
         <span class="c1"># Set verbosity</span>
         <span class="k">if</span> <span class="n">icetray_verbose</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">icetray</span><span class="o">.</span><span class="n">I3Logger</span><span class="o">.</span><span class="n">global_logger</span> <span class="o">=</span> <span class="n">icetray</span><span class="o">.</span><span class="n">I3NullLogger</span><span class="p">()</span>
+
+        <span class="c1"># Base class constructor</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">class_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
 
     <span class="nd">@final</span>
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">directories</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -748,11 +747,15 @@
         <span class="k">while</span> <span class="n">i3_file_io</span><span class="o">.</span><span class="n">more</span><span class="p">():</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">frame</span> <span class="o">=</span> <span class="n">i3_file_io</span><span class="o">.</span><span class="n">pop_physics</span><span class="p">()</span>
-            <span class="k">except</span><span class="p">:</span>  <span class="c1"># noqa: E722</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="k">if</span> <span class="s2">"I3"</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">):</span>
+                    <span class="k">continue</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_skip_frame</span><span class="p">(</span><span class="n">frame</span><span class="p">):</span>
                 <span class="k">continue</span>
 
-            <span class="c1"># Extract data from I3Frame</span>
+            <span class="c1"># Try to extract data from I3Frame</span>
             <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extractors</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
+
             <span class="n">data_dict</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_table_names</span><span class="p">,</span> <span class="n">results</span><span class="p">))</span>
 
             <span class="c1"># If an I3GenericExtractor is used, we want each automatically</span>
@@ -866,7 +869,20 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_outdir</span><span class="p">,</span>
             <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s2">"\.i3\..*"</span><span class="p">,</span> <span class="s2">""</span><span class="p">,</span> <span class="n">basename</span><span class="p">)</span> <span class="o">+</span> <span class="s2">"."</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">file_suffix</span><span class="p">,</span>
         <span class="p">)</span>
-        <span class="k">return</span> <span class="n">output_file</span></div>
+        <span class="k">return</span> <span class="n">output_file</span>
+
+    <span class="k">def</span> <span class="nf">_skip_frame</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frame</span><span class="p">:</span> <span class="s2">"icetray.I3Frame"</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Check if frame should be skipped.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            frame: I3Frame to check.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            True if frame is a null split frame, else False.</span>
+<span class="sd">        """</span>
+        <span class="k">if</span> <span class="n">frame</span><span class="p">[</span><span class="s2">"I3EventHeader"</span><span class="p">]</span><span class="o">.</span><span class="n">sub_event_stream</span> <span class="o">==</span> <span class="s2">"NullSplit"</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
 </pre></div>
 
           </article>
@@ -891,7 +907,7 @@
               
           </div>
             Created using
-            <a href="http://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
+            <a href="http://www.sphinx-doc.org/">Sphinx</a> 6.2.1.
              and
             <a href="https://github.com/bashtage/sphinx-material/">Material for
               Sphinx</a>

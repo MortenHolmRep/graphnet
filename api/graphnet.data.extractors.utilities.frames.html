@@ -116,12 +116,9 @@
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/material.css" />
     <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-    <script src="../_static/jquery.js"></script>
-    <script src="../_static/underscore.js"></script>
-    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
     <script src="../_static/sphinx_highlight.js"></script>
-    <link rel="shortcut icon" href="../_static/favicon.svg"/>
+    <link rel="icon" href="../_static/favicon.svg"/>
     <link rel="author" title="About these documents" href="../about.html" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -153,8 +150,7 @@
         <a href="../index.html" title="graphnet  documentation"
            class="md-header-nav__button md-logo">
           
-              <img src="../_static/favicon-white.svg" height="26"
-                   alt="graphnet documentation logo">
+            &nbsp;
           
         </a>
       </div>
@@ -256,7 +252,7 @@
   <label class="md-nav__title md-nav__title--site" for="__drawer">
     <a href="../index.html" title="graphnet documentation" class="md-nav__button md-logo">
       
-        <img src="../_static/favicon-white.svg" alt=" logo" width="48" height="48">
+        <img src="../_static/" alt=" logo" width="48" height="48">
       
     </a>
     <a href="../index.html"
@@ -410,7 +406,28 @@
     <li class="md-nav__item">
     
     
+      <a href="graphnet.data.extractors.i3ntmuonlabelsextractor.html" class="md-nav__link">i3ntmuonlabelsextractor</a>
+      
+    
+    </li>
+    <li class="md-nav__item">
+    
+    
+      <a href="graphnet.data.extractors.i3particleextractor.html" class="md-nav__link">i3particleextractor</a>
+      
+    
+    </li>
+    <li class="md-nav__item">
+    
+    
       <a href="graphnet.data.extractors.i3pisaextractor.html" class="md-nav__link">i3pisaextractor</a>
+      
+    
+    </li>
+    <li class="md-nav__item">
+    
+    
+      <a href="graphnet.data.extractors.i3quesoextractor.html" class="md-nav__link">i3quesoextractor</a>
       
     
     </li>
@@ -584,27 +601,33 @@
 <p>Utility methods for working with I3Frames.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="graphnet.data.extractors.utilities.frames.frame_is_montecarlo">
-<span class="sig-prename descclassname"><span class="pre">graphnet.data.extractors.utilities.frames.</span></span><span class="sig-name descname"><span class="pre">frame_is_montecarlo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frame</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/graphnet/data/extractors/utilities/frames.html#frame_is_montecarlo"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#graphnet.data.extractors.utilities.frames.frame_is_montecarlo" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">graphnet.data.extractors.utilities.frames.</span></span><span class="sig-name descname"><span class="pre">frame_is_montecarlo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mctree</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/graphnet/data/extractors/utilities/frames.html#frame_is_montecarlo"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#graphnet.data.extractors.utilities.frames.frame_is_montecarlo" title="Permalink to this definition">¶</a></dt>
 <dd><p>Check whether <cite>frame</cite> is from Monte Carlo simulation.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></p>
 </dd>
 <dt class="field-even">Parameters<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>frame</strong> (<em>icecube.icetray.I3Frame</em>) – </p>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>frame</strong> (<em>icecube.icetray.I3Frame</em>) – </p></li>
+<li><p><strong>mctree</strong> (<em>str</em><em> | </em><em>None</em>) – </p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
 <dl class="py function">
 <dt class="sig sig-object py" id="graphnet.data.extractors.utilities.frames.frame_is_noise">
-<span class="sig-prename descclassname"><span class="pre">graphnet.data.extractors.utilities.frames.</span></span><span class="sig-name descname"><span class="pre">frame_is_noise</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frame</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/graphnet/data/extractors/utilities/frames.html#frame_is_noise"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#graphnet.data.extractors.utilities.frames.frame_is_noise" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">graphnet.data.extractors.utilities.frames.</span></span><span class="sig-name descname"><span class="pre">frame_is_noise</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mctree</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/graphnet/data/extractors/utilities/frames.html#frame_is_noise"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#graphnet.data.extractors.utilities.frames.frame_is_noise" title="Permalink to this definition">¶</a></dt>
 <dd><p>Check whether <cite>frame</cite> is from noise.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></p>
 </dd>
 <dt class="field-even">Parameters<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>frame</strong> (<em>icecube.icetray.I3Frame</em>) – </p>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>frame</strong> (<em>icecube.icetray.I3Frame</em>) – </p></li>
+<li><p><strong>mctree</strong> (<em>str</em><em> | </em><em>None</em>) – </p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
@@ -618,7 +641,7 @@
 <li><p><strong>frame</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">I3Frame</span></code>) – Physics (P) I3-frame from which to extract OM keys and pulse
 series</p></li>
 <li><p><strong>pulseseries</strong> (<em>str</em>) – </p></li>
-<li><p><strong>calibration</strong> (<em>Optional</em><em>[</em><em>icecube.dataclasses.I3Calibration</em><em>]</em>) – </p></li>
+<li><p><strong>calibration</strong> (<em>icecube.dataclasses.I3Calibration</em><em> | </em><em>None</em>) – </p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
@@ -679,7 +702,7 @@ pulse series data.</p>
               
           </div>
             Created using
-            <a href="http://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
+            <a href="http://www.sphinx-doc.org/">Sphinx</a> 6.2.1.
              and
             <a href="https://github.com/bashtage/sphinx-material/">Material for
               Sphinx</a>

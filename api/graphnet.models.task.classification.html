@@ -116,12 +116,9 @@
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/material.css" />
     <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-    <script src="../_static/jquery.js"></script>
-    <script src="../_static/underscore.js"></script>
-    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
     <script src="../_static/sphinx_highlight.js"></script>
-    <link rel="shortcut icon" href="../_static/favicon.svg"/>
+    <link rel="icon" href="../_static/favicon.svg"/>
     <link rel="author" title="About these documents" href="../about.html" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -153,8 +150,7 @@
         <a href="../index.html" title="graphnet  documentation"
            class="md-header-nav__button md-logo">
           
-              <img src="../_static/favicon-white.svg" height="26"
-                   alt="graphnet documentation logo">
+            &nbsp;
           
         </a>
       </div>
@@ -255,7 +251,7 @@
   <label class="md-nav__title md-nav__title--site" for="__drawer">
     <a href="../index.html" title="graphnet documentation" class="md-nav__button md-logo">
       
-        <img src="../_static/favicon-white.svg" alt=" logo" width="48" height="48">
+        <img src="../_static/" alt=" logo" width="48" height="48">
       
     </a>
     <a href="../index.html"
@@ -564,7 +560,7 @@ hidden layer.</p>
 </dd></dl>
 <dl class="py class">
 <dt class="sig sig-object py" id="graphnet.models.task.classification.BinaryClassificationTask">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">graphnet.models.task.classification.</span></span><span class="sig-name descname"><span class="pre">BinaryClassificationTask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hidden_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_labels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loss_function</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transform_prediction_and_target</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transform_target</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transform_inference</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transform_support</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loss_weight</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/graphnet/models/task/classification.html#BinaryClassificationTask"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#graphnet.models.task.classification.BinaryClassificationTask" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">graphnet.models.task.classification.</span></span><span class="sig-name descname"><span class="pre">BinaryClassificationTask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hidden_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loss_function</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_labels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prediction_labels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transform_prediction_and_target</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transform_target</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transform_inference</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transform_support</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loss_weight</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/graphnet/models/task/classification.html#BinaryClassificationTask"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#graphnet.models.task.classification.BinaryClassificationTask" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="graphnet.models.task.task.html#graphnet.models.task.task.Task" title="graphnet.models.task.task.Task"><code class="xref py py-class docutils literal notranslate"><span class="pre">Task</span></code></a></p>
 <p>Performs binary classification.</p>
 <p>Construct <cite>Task</cite>.</p>
@@ -574,10 +570,13 @@ hidden layer.</p>
 <li><p><strong>hidden_size</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>) – The number of nodes in the layer feeding into this
 tasks, used to construct the affine transformation to the
 predicted quantity.</p></li>
-<li><p><strong>target_labels</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]]) – Name(s) of the quantity/-ies being predicted, used
+<li><p><strong>loss_function</strong> (<a class="reference internal" href="graphnet.training.loss_functions.html#graphnet.training.loss_functions.LossFunction" title="graphnet.training.loss_functions.LossFunction"><code class="xref py py-class docutils literal notranslate"><span class="pre">LossFunction</span></code></a>) – Loss function appropriate to the task.</p></li>
+<li><p><strong>target_labels</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>], <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>], default: <code class="docutils literal notranslate"><span class="pre">None</span></code>) – Name(s) of the quantity/-ies being predicted, used
 to extract the  target tensor(s) from the <cite>Data</cite> object in
 <cite>.compute_loss(…)</cite>.</p></li>
-<li><p><strong>loss_function</strong> (<a class="reference internal" href="graphnet.training.loss_functions.html#graphnet.training.loss_functions.LossFunction" title="graphnet.training.loss_functions.LossFunction"><code class="xref py py-class docutils literal notranslate"><span class="pre">LossFunction</span></code></a>) – Loss function appropriate to the task.</p></li>
+<li><p><strong>prediction_labels</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>], <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>], default: <code class="docutils literal notranslate"><span class="pre">None</span></code>) – The name(s) of each column that is predicted by
+the model during inference. If not given, the name will auto
+matically be set to <cite>target_label + _pred</cite>.</p></li>
 <li><p><strong>transform_prediction_and_target</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Callable</span></code>], default: <code class="docutils literal notranslate"><span class="pre">None</span></code>) – Optional function to transform
 both the predicted and target tensor before passing them to the
 loss function. Useful e.g. for having the model predict
@@ -611,7 +610,7 @@ loss weights.</p></li>
 </dd></dl>
 <dl class="py class">
 <dt class="sig sig-object py" id="graphnet.models.task.classification.BinaryClassificationTaskLogits">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">graphnet.models.task.classification.</span></span><span class="sig-name descname"><span class="pre">BinaryClassificationTaskLogits</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hidden_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_labels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loss_function</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transform_prediction_and_target</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transform_target</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transform_inference</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transform_support</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loss_weight</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/graphnet/models/task/classification.html#BinaryClassificationTaskLogits"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#graphnet.models.task.classification.BinaryClassificationTaskLogits" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">graphnet.models.task.classification.</span></span><span class="sig-name descname"><span class="pre">BinaryClassificationTaskLogits</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hidden_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loss_function</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_labels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prediction_labels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transform_prediction_and_target</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transform_target</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transform_inference</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transform_support</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loss_weight</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/graphnet/models/task/classification.html#BinaryClassificationTaskLogits"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#graphnet.models.task.classification.BinaryClassificationTaskLogits" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="graphnet.models.task.task.html#graphnet.models.task.task.Task" title="graphnet.models.task.task.Task"><code class="xref py py-class docutils literal notranslate"><span class="pre">Task</span></code></a></p>
 <p>Performs binary classification form logits.</p>
 <p>Construct <cite>Task</cite>.</p>
@@ -621,10 +620,13 @@ loss weights.</p></li>
 <li><p><strong>hidden_size</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>) – The number of nodes in the layer feeding into this
 tasks, used to construct the affine transformation to the
 predicted quantity.</p></li>
-<li><p><strong>target_labels</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]]) – Name(s) of the quantity/-ies being predicted, used
+<li><p><strong>loss_function</strong> (<a class="reference internal" href="graphnet.training.loss_functions.html#graphnet.training.loss_functions.LossFunction" title="graphnet.training.loss_functions.LossFunction"><code class="xref py py-class docutils literal notranslate"><span class="pre">LossFunction</span></code></a>) – Loss function appropriate to the task.</p></li>
+<li><p><strong>target_labels</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>], <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>], default: <code class="docutils literal notranslate"><span class="pre">None</span></code>) – Name(s) of the quantity/-ies being predicted, used
 to extract the  target tensor(s) from the <cite>Data</cite> object in
 <cite>.compute_loss(…)</cite>.</p></li>
-<li><p><strong>loss_function</strong> (<a class="reference internal" href="graphnet.training.loss_functions.html#graphnet.training.loss_functions.LossFunction" title="graphnet.training.loss_functions.LossFunction"><code class="xref py py-class docutils literal notranslate"><span class="pre">LossFunction</span></code></a>) – Loss function appropriate to the task.</p></li>
+<li><p><strong>prediction_labels</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>], <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>], default: <code class="docutils literal notranslate"><span class="pre">None</span></code>) – The name(s) of each column that is predicted by
+the model during inference. If not given, the name will auto
+matically be set to <cite>target_label + _pred</cite>.</p></li>
 <li><p><strong>transform_prediction_and_target</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Callable</span></code>], default: <code class="docutils literal notranslate"><span class="pre">None</span></code>) – Optional function to transform
 both the predicted and target tensor before passing them to the
 loss function. Useful e.g. for having the model predict
@@ -705,7 +707,7 @@ loss weights.</p></li>
               
           </div>
             Created using
-            <a href="http://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
+            <a href="http://www.sphinx-doc.org/">Sphinx</a> 6.2.1.
              and
             <a href="https://github.com/bashtage/sphinx-material/">Material for
               Sphinx</a>
