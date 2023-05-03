@@ -155,7 +155,6 @@ def main() -> None:
     with wandb.init(project="trace", config=config, group="DDP") as run:
         # Set up profiler
         wait, warmup, active, repeat = 1, 1, 2, 1
-        # total_steps = (wait + warmup + active) * (1 + repeat)
         schedule = torch.profiler.schedule(
             wait=wait, warmup=warmup, active=active, repeat=repeat
         )
