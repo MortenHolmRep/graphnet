@@ -74,6 +74,8 @@ class I3RetroExtractor(I3Extractor):
                     ].value,
                 }
             )
+        else:
+            self.warning_once("RETRO variables not found in frame.")
 
         if self._frame_contains_classifiers(frame):
             classifiers = [
